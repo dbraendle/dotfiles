@@ -2,10 +2,6 @@
 #chmod a+x setupNewMac.sh
 
 ./brew.sh
-
-git clone https://github.com/rupa/z.git ~/code/z
-chmod +x ~/code/z/z.sh
-
 sh .osx
 ./symlinks.sh
 

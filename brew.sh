@@ -1,56 +1,108 @@
 #!/bin/bash
 
-# Install command-line tools using Homebrew
+# Check for Homebrew, Install if we don't have it
+if test ! $(which brew); then
+	echo "Installing homebrew..."
+	ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+fi
 
 # Make sure we’re using the latest Homebrew
+echo "updating brew"
 brew update
 
 # Upgrade any already-installed formulae
+echo "upgrading brew formulae"
 brew upgrade
 
-# Install GNU core utilities (those that come with OS X are outdated)
-# Don’t forget to add `$(brew --prefix coreutils)/libexec/gnubin` to `$PATH`.
-brew install coreutils
-# Install some other useful utilities like `sponge`
-brew install moreutils
-# Install GNU `find`, `locate`, `updatedb`, and `xargs`, `g`-prefixed
-brew install findutils
-# Install GNU `sed`, overwriting the built-in `sed`
-brew install gnu-sed --default-names
 
+brewApps=(
+	coreutils
+	moreils
+	findutils
+	gnu-sed --with-default-names
+	wget --with-iri
+	grc
+	ack
+	git
+	imagemagick --with-webp
+	node
+	pv
+	rename
+	tree
+	ffmpeg --with-libvpx
+	mackup
+	caskroom/cask/brew-cask
+)
 
-# Install Bash 4
-# Note: don’t forget to add `/usr/local/bin/bash` to `/etc/shells` before running `chsh`.
-brew install bash
-# regular bash-completion package is held back to an older release, so we get latest from versions.
-#   github.com/Homebrew/homebrew/blob/master/Library/Formula/bash-completion.rb#L3-L4
 brew tap homebrew/versions
-brew install homebrew/versions/bash-completion2
 
-# generic colouriser  http://kassiopeia.juls.savba.sk/~garabik/software/grc/
-brew install grc
+echo "installing brew apps …"
+brew  install ${brewApps[@]}
 
-# Install wget with IRI support
-brew install wget --enable-iri
+brewCaskApps=(
+	#Produktivität
+	alfred
+	dropbox	
+	things
+	istat-menus
+	skype
+	teamviewer
+	gpgtools
+	grandtotal
+	evernote
 
-# Install more recent versions of some OS X tools
-brew install vim --override-system-vi
-brew install homebrew/dupes/grep
-brew install homebrew/dupes/screen
+	##Arbeitstools
+	adobe-creative-cloud
+	sublime-text3 
+	transmit
+	github
+	virtualbox
+	imageoptim
+	codekit
+
+	#gehasst, aber noch notwendig
+	flash
+	silverlight
+	java
+
+	
+	#Media
+	vlc
+	jdownloader2
 
 
-# Install other useful binaries
-brew install ack
-#install exiv2
-brew install git
-brew install imagemagick --with-webp
-brew install node # This installs `npm` too using the recommended installation method
-brew install pv
-brew install rename
-brew install tree
-brew install zopfli
-brew install ffmpeg --with-libvpx
-brew install android-platform-tools
+	#System
+	appcleaner
+	qlcolorcode
 
-# Remove outdated versions from the cellar
-brew cleanup
+
+	# browsers
+	google-chrome
+	firefox
+	google-chrome-canary
+	firefox-nightly --force
+	webkit-nightly --force
+	chromium --force
+	torbrowser
+)
+
+brew tap caskroom/versions
+
+echo "installing brew cask apps …"
+brew cask install --appdir="/Applications" ${brewCaskApps[@]}
+echo "cleaning up …"
+brew cask cleanup
+
+fonts=(
+	font-open-sans
+	font-open-sans-condensed
+	font-railway
+	font-varela-round
+	font-font-awesome
+	font-titillium
+)
+
+brew tap caskroom/fonts
+
+echo "installing fonts..."
+brew cask install ${fonts[@]}
