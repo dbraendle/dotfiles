@@ -3,6 +3,7 @@
 
 # Essential Command Line Tools
 brew "git"                      # Version control (overrides macOS system git)
+brew "gh"                       # GitHub CLI for repository
 brew "curl"                     # HTTP requests  
 brew "wget"                     # Downloads
 brew "jq"                       # JSON processor

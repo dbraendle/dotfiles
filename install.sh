@@ -59,8 +59,24 @@ else
     print_success "Xcode Command Line Tools already installed"
 fi
 
-# Step 2: Homebrew Package Manager
-print_status "Step 2: Homebrew Package Manager"
+# Step 2: macOS System Settings (optional)
+if [ -f "macos-settings.sh" ]; then
+    print_status "Step 2: macOS System Settings"
+    read -p "🔧 Apply macOS system settings? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_status "Applying macOS settings..."
+        source macos-settings.sh
+        print_success "macOS settings applied"
+    else
+        print_status "macOS settings skipped"
+    fi
+else
+    print_status "Step 2: macOS settings file not found - skipping"
+fi
+
+# Step 3: Homebrew Package Manager
+print_status "Step 3: Homebrew Package Manager"
 
 # Check if Homebrew binary exists and load PATH
 if [ -f "/opt/homebrew/bin/brew" ]; then
@@ -92,9 +108,9 @@ else
     print_success "Homebrew installed"
 fi
 
-# Step 3: Apps Installation (optional)
+# Step 4: Apps Installation (optional)
 if [ -f "Brewfile" ]; then
-    print_status "Step 3: Apps Installation" 
+    print_status "Step 4: Apps Installation" 
     read -p "📦 Install apps from Brewfile? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -105,11 +121,28 @@ if [ -f "Brewfile" ]; then
         print_status "Apps installation skipped"
     fi
 else
-    print_status "Step 3: Brewfile not found - skipping app installation"
+    print_status "Step 4: Brewfile not found - skipping app installation"
 fi
 
-# Step 4: Terminal Setup (optional)
-print_status "Step 4: Terminal Setup"
+# Step 5: NPM Global Packages (optional)
+if [ -f "npm-install.sh" ]; then
+    print_status "Step 5: NPM Global Packages"
+    read -p "📦 Install NPM global packages? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_status "Running NPM packages installation..."
+        chmod +x npm-install.sh
+        ./npm-install.sh
+        print_success "NPM packages installed"
+    else
+        print_status "NPM packages installation skipped"
+    fi
+else
+    print_status "Step 5: npm-install.sh not found - skipping NPM packages"
+fi
+
+# Step 6: Terminal Setup (optional)
+print_status "Step 6: Terminal Setup"
 read -p "🖥️  Install Oh My Zsh and terminal configuration? (y/n): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -135,83 +168,84 @@ else
     print_status "Terminal setup skipped"
 fi
 
-# Step 5: Git Configuration (optional)
-print_status "Step 5: Git Configuration"
+# Step 7: Git Configuration (optional)
+print_status "Step 7: Git Configuration"
 if command -v git &> /dev/null; then
     current_name=$(git config --global user.name 2>/dev/null || echo "")
     current_email=$(git config --global user.email 2>/dev/null || echo "")
     
-    if [ -z "$current_name" ] || [ -z "$current_email" ]; then
+    if [ -n "$current_name" ] && [ -n "$current_email" ]; then
+        print_success "Git already configured: $current_name <$current_email>"
+        read -p "🔧 Reconfigure Git settings and install templates? (y/n): " -n 1 -r
+    else
         read -p "🔧 Configure Git user settings? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            echo ""
-            read -p "📧 Git email address: " git_email
-            read -p "👤 Git username: " git_username
-            
-            if [ -n "$git_email" ] && [ -n "$git_username" ]; then
-                # Install .gitconfig template if available
-                if [ -f ".gitconfig" ]; then
-                    print_status "Installing .gitconfig template..."
-                    # Replace placeholders and copy
-                    sed "s/PLACEHOLDER_NAME/$git_username/g; s/PLACEHOLDER_EMAIL/$git_email/g" .gitconfig > "$HOME/.gitconfig"
-                    print_success "Git configuration installed with aliases and settings"
-                else
-                    # Fallback: basic git config
-                    git config --global user.name "$git_username"
-                    git config --global user.email "$git_email"
-                    git config --global init.defaultBranch main
-                    git config --global core.editor "code --wait"
-                    git config --global pull.rebase false
-                    git config --global push.default simple
-                    print_success "Basic Git configuration set"
-                fi
-                
-                print_success "Git configured: $git_username <$git_email>"
-            else
-                print_status "Git configuration skipped (empty values)"
-            fi
+    fi
+    
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo ""
+        if [ -n "$current_email" ]; then
+            read -p "📧 Git email address ($current_email): " git_email
+            git_email=${git_email:-$current_email}
         else
-            print_status "Git configuration skipped"
+            read -p "📧 Git email address: " git_email
+        fi
+        
+        if [ -n "$current_name" ]; then
+            read -p "👤 Git username ($current_name): " git_username
+            git_username=${git_username:-$current_name}
+        else
+            read -p "👤 Git username: " git_username
+        fi
+        
+        if [ -n "$git_email" ] && [ -n "$git_username" ]; then
+            # Install .gitconfig template if available
+            if [ -f ".gitconfig" ]; then
+                print_status "Installing .gitconfig template with aliases and settings..."
+                # Replace placeholders and copy
+                sed "s/PLACEHOLDER_NAME/$git_username/g; s/PLACEHOLDER_EMAIL/$git_email/g" .gitconfig > "$HOME/.gitconfig"
+                print_success "Git configuration installed with aliases and settings"
+            else
+                # Fallback: basic git config
+                git config --global user.name "$git_username"
+                git config --global user.email "$git_email"
+                git config --global init.defaultBranch main
+                git config --global core.editor "code --wait"
+                git config --global pull.rebase false
+                git config --global push.default simple
+                print_success "Basic Git configuration set"
+            fi
+            
+            print_success "Git configured: $git_username <$git_email>"
+        else
+            print_status "Git configuration skipped (empty values)"
         fi
     else
-        print_success "Git already configured: $current_name <$current_email>"
+        print_status "Git configuration skipped"
     fi
 else
     print_status "Git not found - install via Brewfile first"
 fi
 
-# Step 6: NPM Global Packages (optional)
-if [ -f "npm-install.sh" ]; then
-    print_status "Step 6: NPM Global Packages"
-    read -p "📦 Install NPM global packages? (y/n): " -n 1 -r
+# Step 8: SSH GitHub Setup (optional)
+if [ -f "ssh/ssh-setup.sh" ]; then
+    print_status "Step 8: SSH GitHub Setup"
+    read -p "🔑 Setup SSH for GitHub? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Running NPM packages installation..."
-        chmod +x npm-install.sh
-        ./npm-install.sh
-        print_success "NPM packages installed"
+        print_status "Running SSH GitHub setup..."
+        chmod +x ssh/ssh-setup.sh
+        ./ssh/ssh-setup.sh
+        if [ $? -eq 0 ]; then
+            print_success "SSH GitHub setup completed"
+        else
+            print_status "SSH GitHub setup skipped or failed"
+        fi
     else
-        print_status "NPM packages installation skipped"
+        print_status "SSH GitHub setup skipped"
     fi
 else
-    print_status "Step 6: npm-install.sh not found - skipping NPM packages"
-fi
-
-# Step 7: macOS System Settings (optional)
-if [ -f "macos-settings.sh" ]; then
-    print_status "Step 7: macOS System Settings"
-    read -p "🔧 Apply macOS system settings? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Applying macOS settings..."
-        source macos-settings.sh
-        print_success "macOS settings applied"
-    else
-        print_status "macOS settings skipped"
-    fi
-else
-    print_status "Step 7: macOS settings file not found - skipping"
+    print_status "Step 8: SSH setup script not found - skipping SSH GitHub setup"
 fi
 
 echo ""

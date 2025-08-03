@@ -1,0 +1,11 @@
+# GitHub SSH Configuration
+# This config will be added to ~/.ssh/config
+
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile PLACEHOLDER_SSH_KEY
+    UseKeychain yes
+    AddKeysToAgent yes
+    ServerAliveInterval 60
+    ServerAliveCountMax 30
