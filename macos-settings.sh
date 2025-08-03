@@ -150,6 +150,21 @@ defaults write NSGlobalDomain KeyRepeat -int 2
 # Shorter delay before repeat starts
 defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
+# Disable system-wide autocorrect
+defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+
+# Disable automatic capitalization
+defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
+
+# Disable automatic period substitution (e.g., two spaces to a period)
+defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
+
+# Disable smart quotes
+defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+
+# Disable smart dashes
+defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+
 # --- Trackpad ---
 
 # Tap to click (Bluetooth trackpad)
@@ -168,14 +183,14 @@ echo "→ Configuring designer settings..."
 
 # --- Customize menu bar (top right) ---
 
-# Get system language for appropriate date format
-if [[ $(defaults read NSGlobalDomain AppleLanguages | head -1 | tr -d '", ') == "de"* ]]; then
-    # German system: "Sa. 2. Aug. (KW31) 22:27:14"
-    defaults write com.apple.menuextra.clock DateFormat -string "EEE. d. MMM. '(KW'ww')' HH:mm:ss"
-else
-    # English system: "Sat Aug 3 (Week31) 22:27:14"  
-    defaults write com.apple.menuextra.clock DateFormat -string "EEE MMM d '(Week'ww')' HH:mm:ss"
-fi
+# Show seconds in menu bar clock
+defaults write com.apple.menuextra.clock ShowSeconds -bool true
+
+# Show weather in menu bar
+defaults write com.apple.controlcenter "NSStatusItem Visible Weather" -bool true
+
+# Show Bluetooth in menu bar
+defaults write com.apple.controlcenter "NSStatusItem Visible Bluetooth" -bool true
 
 # Shows battery percentage (87%) instead of just icon
 defaults write com.apple.menuextra.battery ShowPercent -string "YES"
@@ -236,12 +251,31 @@ echo "→ Applying settings..."
 
 # --- Restart apps to apply changes ---
 
+# Store current terminal app to refocus later
+CURRENT_APP=$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true')
+
 killall Finder 2>/dev/null || true
 killall SystemUIServer 2>/dev/null || true
+
+# Wait a moment for restart
+sleep 1
+
+# Refocus terminal
+osascript -e "tell application \"$CURRENT_APP\" to activate" 2>/dev/null || true
 
 # --- Create screenshots directory ---
 
 mkdir -p "$HOME/Desktop/Screenshots"
+
+# =====================
+# === PRINTING ===
+# =====================
+
+echo "→ Configuring printing settings..."
+
+# Enable CUPS Web Interface for advanced printer management
+# Access via: http://localhost:631
+cupsctl WebInterface=yes
 
 echo ""
 echo "✅ Settings applied successfully:"
@@ -252,3 +286,4 @@ echo "   • Trackpad: Tap-to-click enabled"
 echo "   • Performance: Animations accelerated"
 echo "   • Security: Firewall enabled"
 echo "   • Network: DNS settings preserved"
+echo "   • Printing: CUPS Web Interface enabled (http://localhost:631)"

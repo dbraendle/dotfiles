@@ -70,6 +70,17 @@ alias di='docker images'
 alias serve='python3 -m http.server'
 alias myip='curl -s https://httpbin.org/ip | jq -r .origin'
 
+# macOS Utilities
+alias scanner='open -a "Image Capture"'
+alias cleanup='brew cleanup && brew autoremove'
+
+# Dotfiles Management (works from anywhere)
+alias .install='cd ~/Dev/dotfiles && ./install.sh'
+alias .update='cd ~/Dev/dotfiles && ./update.sh'
+alias .brew='cd ~/Dev/dotfiles && ./brew-install.sh'
+# Removed mas-helper.sh - use 'brew bundle install' instead
+alias .license='sudo xcodebuild -license accept'
+
 # Custom Functions
 mkcd() {
     mkdir -p "$1" && cd "$1"

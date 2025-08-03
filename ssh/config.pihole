@@ -1,0 +1,42 @@
+# Pi-hole SSH Configuration Template
+# Copy relevant sections to ~/.ssh/config
+
+# Pi-hole Server
+Host pihole
+    HostName YOUR_PIHOLE_IP_OR_HOSTNAME
+    User pi
+    Port 22
+    IdentityFile ~/.ssh/pihole_ed25519
+    UseKeychain yes
+    AddKeysToAgent yes
+    ServerAliveInterval 60
+    ServerAliveCountMax 30
+
+# Alternative Pi-hole configurations (uncomment and modify as needed)
+
+# Pi-hole with custom hostname
+# Host pihole-local
+#     HostName pihole.local
+#     User pi
+#     Port 22
+#     IdentityFile ~/.ssh/pihole_ed25519
+#     UseKeychain yes
+#     AddKeysToAgent yes
+
+# Pi-hole with different user
+# Host pihole-admin
+#     HostName YOUR_PIHOLE_IP
+#     User admin
+#     Port 22
+#     IdentityFile ~/.ssh/pihole_ed25519
+#     UseKeychain yes
+#     AddKeysToAgent yes
+
+# Pi-hole with custom SSH port
+# Host pihole-secure
+#     HostName YOUR_PIHOLE_IP
+#     User pi
+#     Port 2222
+#     IdentityFile ~/.ssh/pihole_ed25519
+#     UseKeychain yes
+#     AddKeysToAgent yes

@@ -15,7 +15,10 @@ Automated macOS setup for developers and designers. Transform a fresh Mac into a
 - **Visual Studio Code** - Primary code editor
 - **Google Chrome** - Browser with developer tools
 - **iTerm2** - Enhanced terminal
-- **SF Symbols** - Apple's icon library
+- **Docker Desktop** - Containerization platform
+- **AppCleaner** - Complete app uninstaller
+- **Stats** - System monitor
+- **The Unarchiver** - Archive extraction tool
 
 ### ⚡ CLI Enhancements
 - **ripgrep** (`rg`) - Blazing fast text search
@@ -23,6 +26,7 @@ Automated macOS setup for developers and designers. Transform a fresh Mac into a
 - **eza** - Modern `ls` replacement with colors
 - **jq** - JSON processor
 - **tree** - Directory visualization
+- **mas** - Mac App Store command line interface
 
 ### 🖥️ Terminal Configuration
 - **Oh My Zsh** with robbyrussell theme
@@ -33,6 +37,7 @@ Automated macOS setup for developers and designers. Transform a fresh Mac into a
 ### ⚙️ macOS System Optimizations
 - **Finder**: All bars visible, list view, clean desktop
 - **Screenshots**: Custom folder (`~/Desktop/Screenshots`), PNG format
+- **Menu Bar**: Seconds in clock, weather & Bluetooth visible, battery percentage
 - **Keyboard**: Fast key repeat for coding
 - **Trackpad**: Tap-to-click enabled
 - **Performance**: Faster animations, optimized energy settings
@@ -99,13 +104,19 @@ Applies developer and designer optimizations:
 ```
 dotfiles/
 ├── install.sh              # Main installer script
+├── brew-install.sh         # Homebrew-only installer
+├── update.sh               # System update script
 ├── Brewfile                # Homebrew packages definition
-├── npm-install.sh           # NPM global packages installer
-├── macos-settings.sh        # macOS system preferences
-├── .zshrc                   # Zsh terminal configuration
-├── .gitconfig               # Git configuration template
-├── README.md                # This file
-└── LICENSE                  # MIT License
+├── npm-install.sh          # NPM global packages installer
+├── macos-settings.sh       # macOS system preferences
+├── .editorconfig           # Editor configuration template
+├── .zshrc                  # Zsh terminal configuration
+├── .gitconfig              # Git configuration template
+├── ssh/                    # SSH configuration
+│   ├── config.github       # GitHub SSH config
+│   └── ssh-setup.sh        # SSH key setup script
+├── README.md               # This file
+└── LICENSE                 # MIT License
 ```
 
 ## 🔧 Individual Components
@@ -116,7 +127,12 @@ You can run individual components separately:
 
 ```bash
 # Install Homebrew packages only
+./brew-install.sh
+# OR
 brew bundle install
+
+# Check for system updates
+./update.sh
 
 # Apply macOS settings only
 source macos-settings.sh
@@ -139,19 +155,41 @@ cp .zshrc ~/.zshrc && source ~/.zshrc
 
 ### CLI Tools (via Homebrew)
 ```
-git, curl, wget, jq, tree, node
-ripgrep, bat, eza
+git, gh, curl, wget, jq, tree, node
+ripgrep, bat, eza, mas
 zsh-autosuggestions, zsh-syntax-highlighting
 ```
 
 ### GUI Applications (via Homebrew Cask)
 ```
-visual-studio-code    # Code editor
-google-chrome         # Browser
-iterm2               # Terminal
-sf-symbols           # Apple icons
-the-unarchiver       # Archive tool
-appcleaner          # App uninstaller
+visual-studio-code       # Primary code editor
+sublime-text            # Lightweight code editor
+google-chrome           # Browser with dev tools
+iterm2                  # Enhanced terminal
+docker-desktop          # Docker Desktop (CLI + GUI)
+claude                  # Claude Desktop app
+adobe-creative-cloud    # Adobe Creative Suite manager
+ankerwork              # Video conferencing
+spotify                # Music streaming
+vlc                    # Media player
+downie                 # Video downloader
+audiobook-builder      # Audiobook creation
+the-unarchiver         # Archive extraction
+appcleaner            # Complete app uninstaller
+stats                 # System monitor (free)
+```
+
+### Mac App Store Apps (via mas)
+```
+Pages                # Apple's word processor
+Numbers              # Apple's spreadsheet app
+Keynote              # Apple's presentation app
+Strongbox            # KeePass password manager
+Things 3             # Task management app
+MindSpace            # Mind mapping & diagrams
+1Blocker             # Safari ad blocker with customization
+AdGuard for Safari   # Premium ad blocker
+Hush                 # Cookie banner blocker for Safari
 ```
 
 ### NPM Global Packages
@@ -164,9 +202,22 @@ prettier                    # Code formatter
 ### Optional Apps (Commented in Brewfile)
 Uncomment in `Brewfile` if you want them:
 ```
-firefox, slack, discord, spotify, notion, figma
+# GUI Apps (Homebrew Cask)
+firefox, slack, discord, notion, figma
 1password, rectangle, cleanmymac
+
+# Mac App Store Apps  
+Xcode (15+ GB), MindNode, Wipr 2, Claude by Anthropic
+1Password 7, Magnet, Pixelmator Pro
 ```
+
+### Mac App Store Setup
+The setup includes `mas` (Mac App Store CLI) for installing App Store apps via command line. You need to:
+1. **Sign in to App Store** first
+2. **Own the apps** (for paid apps) or have them in your purchase history
+3. **Run the installer** - Mac App Store apps will install automatically
+
+Find app IDs: `mas search "app name"`
 
 ## 🔄 Safe Re-runs
 
@@ -175,6 +226,28 @@ The installer is designed to be run multiple times safely:
 - ✅ Updates packages to latest versions
 - ✅ Skips already configured settings
 - ✅ Won't break existing configurations
+
+## 🗑️ Uninstalling Apps
+
+### Complete App Removal
+The Brewfile includes uninstall command references:
+
+```bash
+# Basic uninstall (brew packages)
+brew uninstall <package>
+brew uninstall --force <package>
+
+# Complete cask removal (recommended)
+brew uninstall --cask --zap <package>
+brew uninstall --cask --force <package>
+brew uninstall --cask --zap --force <package>
+
+# Mac App Store apps
+mas uninstall <app-id>
+```
+
+### Why --zap?
+`--zap` removes **all traces** including preferences, caches, and support files. Without it, apps leave files in `~/Library/`.
 
 ## 🛠️ Troubleshooting
 
@@ -264,10 +337,14 @@ Feel free to fork this repository and adapt it to your needs! If you have improv
 2. **Open VS Code** and sign in to GitHub for settings sync
 3. **Configure Finder Sidebar** manually (add your favorite folders)
 4. **Run Claude Code**: `claude` command is now available
-5. **Customize Further**: Adjust any settings to your preference
+5. **Set up Docker**: Start Docker Desktop and configure preferences
+6. **Customize Further**: Adjust any settings to your preference
 
 ### Useful Commands
 ```bash
+# System maintenance
+./update.sh              # Check for system updates
+
 # Start Claude Code
 claude
 
@@ -282,6 +359,25 @@ rg "search term"
 
 # Better file listing
 eza -la
+
+# Mac App Store management
+mas search "app name"    # Find app IDs
+mas install 123456       # Install by ID
+mas uninstall 123456     # Uninstall by ID
+```
+
+### Package Management
+```bash
+# Homebrew-only updates
+./brew-install.sh
+
+# Check what's outdated
+brew outdated
+npm outdated -g
+
+# Update everything
+brew upgrade
+npm update -g
 ```
 
 ## 🐛 Known Limitations

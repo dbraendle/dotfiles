@@ -59,6 +59,19 @@ else
     print_success "Xcode Command Line Tools already installed"
 fi
 
+# Accept Xcode license (required for many developer tools)
+if command -v xcodebuild >/dev/null 2>&1; then
+    # Check if license is already accepted
+    if ! xcodebuild -license check 2>/dev/null; then
+        print_status "Xcode license needs to be accepted..."
+        echo "→ Please enter your password to accept Xcode license:"
+        sudo xcodebuild -license accept
+        print_success "Xcode license accepted"
+    else
+        print_success "Xcode license already accepted"
+    fi
+fi
+
 # Step 2: macOS System Settings (optional)
 if [ -f "macos-settings.sh" ]; then
     print_status "Step 2: macOS System Settings"
@@ -164,6 +177,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     else
         print_status ".zshrc template not found - skipping terminal configuration"
     fi
+    
 else
     print_status "Terminal setup skipped"
 fi
