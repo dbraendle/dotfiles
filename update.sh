@@ -28,6 +28,39 @@ echo "🔄 System Updates Check"
 echo "=========================================="
 
 # Check what needs updating first
+
+# Update ssh-wunderbar if installed
+if command -v ssh-wunderbar &> /dev/null; then
+    print_status "Checking ssh-wunderbar for updates..."
+    current_location=$(which ssh-wunderbar)
+    
+    # Download latest version to temp file for comparison
+    temp_file="/tmp/ssh-wunderbar-latest"
+    if curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$temp_file" 2>/dev/null; then
+        if ! cmp -s "$current_location" "$temp_file"; then
+            print_status "🔄 New ssh-wunderbar version available!"
+            read -p "Update ssh-wunderbar? (y/n): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                print_status "Updating ssh-wunderbar..."
+                cp "$temp_file" "$current_location"
+                chmod +x "$current_location"
+                print_success "ssh-wunderbar updated to latest version"
+            else
+                print_status "ssh-wunderbar update skipped"
+            fi
+        else
+            print_success "ssh-wunderbar is already up to date"
+        fi
+        rm -f "$temp_file"
+    else
+        print_warning "Could not check for ssh-wunderbar updates"
+    fi
+else
+    print_status "ssh-wunderbar not installed - skipping update check"
+fi
+
+echo ""
 print_status "Checking for available updates..."
 
 # macOS Updates

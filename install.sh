@@ -208,12 +208,25 @@ install_ssh_wunderbar() {
 }
 
 print_status "Step 4.5: SSH Management Tool"
-read -p "🔑 Install ssh-wunderbar for SSH key management? (y/n): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    install_ssh_wunderbar
+if command -v ssh-wunderbar &> /dev/null; then
+    current_location=$(which ssh-wunderbar)
+    print_status "ssh-wunderbar already installed at: $current_location"
+    read -p "🔄 Update to latest version? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_status "Updating ssh-wunderbar to latest version..."
+        install_ssh_wunderbar
+    else
+        print_status "ssh-wunderbar update skipped"
+    fi
 else
-    print_status "ssh-wunderbar installation skipped"
+    read -p "🔑 Install ssh-wunderbar for SSH key management? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        install_ssh_wunderbar
+    else
+        print_status "ssh-wunderbar installation skipped"
+    fi
 fi
 
 # Step 5: NPM Global Packages (optional)
