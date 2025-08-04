@@ -440,6 +440,38 @@ if command -v ssh-wunderbar &> /dev/null; then
         read
         
         # Run ssh-wunderbar interactively - user returns to install.sh when done
+        # Create ~/.ssh-services.json if it doesn't exist
+        if [ ! -f "$HOME/.ssh-services.json" ]; then
+            print_status "Creating SSH services configuration..."
+            cat > "$HOME/.ssh-services.json" << 'EOF'
+{
+  "_comment": "SSH Services Configuration",
+  "_description": "Personal SSH server and service definitions",
+  "_managed_by": "ssh-wunderbar - https://github.com/dbraendle/ssh-wunderbar",
+  "_location": "This file should be located at: ~/.ssh-services.json",
+  
+  "version": "1.0",
+  "services": {
+    "github": {
+      "type": "git",
+      "hostname": "github.com",
+      "user": "git",
+      "port": 22,
+      "description": "GitHub SSH authentication",
+      "readonly": true,
+      "test_command": "ssh -T git@github.com"
+    }
+  },
+  "settings": {
+    "default_key_type": "ed25519",
+    "auto_backup_config": true,
+    "cleanup_old_keys": false,
+    "key_rotation_days": 365
+  }
+}
+EOF
+        fi
+        
         ssh-wunderbar
         
         echo ""
