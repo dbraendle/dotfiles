@@ -43,8 +43,13 @@ if command -v ssh-wunderbar &> /dev/null; then
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 print_status "Updating ssh-wunderbar..."
-                cp "$temp_file" "$current_location"
-                chmod +x "$current_location"
+                if [[ "$current_location" == "/usr/local/bin/ssh-wunderbar" ]]; then
+                    sudo cp "$temp_file" "$current_location"
+                    sudo chmod +x "$current_location"
+                else
+                    cp "$temp_file" "$current_location"
+                    chmod +x "$current_location"
+                fi
                 print_success "ssh-wunderbar updated to latest version"
             else
                 print_status "ssh-wunderbar update skipped"

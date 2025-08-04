@@ -153,7 +153,14 @@ install_ssh_wunderbar() {
     install_choice=${install_choice:-1}
     
     case $install_choice in
-        1) install_dir="/usr/local/bin" ;;
+        1) 
+            install_dir="/usr/local/bin"
+            # Check if we need sudo for /usr/local/bin
+            if [ ! -w "$install_dir" ]; then
+                print_status "Need sudo access for $install_dir"
+                sudo mkdir -p "$install_dir"
+            fi
+            ;;
         2) 
             install_dir="$HOME/.local/bin"
             mkdir -p "$install_dir"
@@ -175,31 +182,63 @@ install_ssh_wunderbar() {
         *)
             print_status "Invalid choice, defaulting to /usr/local/bin"
             install_dir="/usr/local/bin"
+            if [ ! -w "$install_dir" ]; then
+                print_status "Need sudo access for $install_dir"
+                sudo mkdir -p "$install_dir"
+            fi
             ;;
     esac
     
-    mkdir -p "$install_dir"
+    # Create directory if not exists (with sudo if needed)
+    if [ ! -d "$install_dir" ]; then
+        if [[ "$install_dir" == "/usr/local/bin" ]]; then
+            sudo mkdir -p "$install_dir"
+        else
+            mkdir -p "$install_dir"
+        fi
+    fi
     
     # Download ssh-wunderbar
     if command -v gh &> /dev/null; then
         print_status "🐙 Downloading via GitHub CLI..."
         if gh repo clone dbraendle/ssh-wunderbar /tmp/ssh-wunderbar; then
-            cp /tmp/ssh-wunderbar/ssh-wunderbar "$install_dir/"
-            cp /tmp/ssh-wunderbar/test.sh "$install_dir/"
+            if [[ "$install_dir" == "/usr/local/bin" ]]; then
+                sudo cp /tmp/ssh-wunderbar/ssh-wunderbar "$install_dir/"
+                sudo cp /tmp/ssh-wunderbar/test.sh "$install_dir/"
+            else
+                cp /tmp/ssh-wunderbar/ssh-wunderbar "$install_dir/"
+                cp /tmp/ssh-wunderbar/test.sh "$install_dir/"
+            fi
             rm -rf /tmp/ssh-wunderbar
         else
             print_status "GitHub CLI download failed, falling back to direct download..."
-            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$install_dir/ssh-wunderbar"
-            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
+            if [[ "$install_dir" == "/usr/local/bin" ]]; then
+                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar | sudo tee "$install_dir/ssh-wunderbar" > /dev/null
+                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh | sudo tee "$install_dir/test.sh" > /dev/null
+            else
+                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$install_dir/ssh-wunderbar"
+                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
+            fi
         fi
     else
         print_status "📥 Downloading directly from GitHub..."
-        curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$install_dir/ssh-wunderbar"
-        curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
+        if [[ "$install_dir" == "/usr/local/bin" ]]; then
+            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar | sudo tee "$install_dir/ssh-wunderbar" > /dev/null
+            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh | sudo tee "$install_dir/test.sh" > /dev/null
+        else
+            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$install_dir/ssh-wunderbar"
+            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
+        fi
     fi
     
-    chmod +x "$install_dir/ssh-wunderbar"
-    chmod +x "$install_dir/test.sh"
+    # Set permissions
+    if [[ "$install_dir" == "/usr/local/bin" ]]; then
+        sudo chmod +x "$install_dir/ssh-wunderbar"
+        sudo chmod +x "$install_dir/test.sh"
+    else
+        chmod +x "$install_dir/ssh-wunderbar"
+        chmod +x "$install_dir/test.sh"
+    fi
     
     print_success "✅ ssh-wunderbar installed to $install_dir"
     print_status "Usage: ssh-wunderbar --help"
