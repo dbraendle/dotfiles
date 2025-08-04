@@ -451,17 +451,7 @@ if command -v ssh-wunderbar &> /dev/null; then
   "_location": "This file should be located at: ~/.ssh-services.json",
   
   "version": "1.0",
-  "services": {
-    "github": {
-      "type": "git",
-      "hostname": "github.com",
-      "user": "git",
-      "port": 22,
-      "description": "GitHub SSH authentication",
-      "readonly": true,
-      "test_command": "ssh -T git@github.com"
-    }
-  },
+  "services": {},
   "settings": {
     "default_key_type": "ed25519",
     "auto_backup_config": true,
