@@ -256,7 +256,59 @@ if command -v ssh-wunderbar &> /dev/null; then
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_status "Updating ssh-wunderbar to latest version..."
-        install_ssh_wunderbar
+        
+        # Update at current location without asking where to install
+        install_dir=$(dirname "$current_location")
+        
+        # Clean up any existing temp directory
+        rm -rf /tmp/ssh-wunderbar
+        
+        # Download latest version
+        if command -v gh &> /dev/null; then
+            print_status "🐙 Downloading via GitHub CLI..."
+            if gh repo clone dbraendle/ssh-wunderbar /tmp/ssh-wunderbar; then
+                if [[ "$current_location" == "/usr/local/bin/ssh-wunderbar" ]]; then
+                    sudo cp /tmp/ssh-wunderbar/ssh-wunderbar "$current_location"
+                    sudo cp /tmp/ssh-wunderbar/test.sh "$install_dir/test.sh"
+                    sudo chmod +x "$current_location"
+                    sudo chmod +x "$install_dir/test.sh"
+                else
+                    cp /tmp/ssh-wunderbar/ssh-wunderbar "$current_location"
+                    cp /tmp/ssh-wunderbar/test.sh "$install_dir/test.sh"
+                    chmod +x "$current_location"
+                    chmod +x "$install_dir/test.sh"
+                fi
+                rm -rf /tmp/ssh-wunderbar
+            else
+                print_status "GitHub CLI download failed, falling back to direct download..."
+                if [[ "$current_location" == "/usr/local/bin/ssh-wunderbar" ]]; then
+                    curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar | sudo tee "$current_location" > /dev/null
+                    curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh | sudo tee "$install_dir/test.sh" > /dev/null
+                    sudo chmod +x "$current_location"
+                    sudo chmod +x "$install_dir/test.sh"
+                else
+                    curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$current_location"
+                    curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
+                    chmod +x "$current_location"
+                    chmod +x "$install_dir/test.sh"
+                fi
+            fi
+        else
+            print_status "📥 Downloading directly from GitHub..."
+            if [[ "$current_location" == "/usr/local/bin/ssh-wunderbar" ]]; then
+                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar | sudo tee "$current_location" > /dev/null
+                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh | sudo tee "$install_dir/test.sh" > /dev/null
+                sudo chmod +x "$current_location"
+                sudo chmod +x "$install_dir/test.sh"
+            else
+                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$current_location"
+                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
+                chmod +x "$current_location"
+                chmod +x "$install_dir/test.sh"
+            fi
+        fi
+        
+        print_success "✅ ssh-wunderbar updated at $current_location"
     else
         print_status "ssh-wunderbar update skipped"
     fi
