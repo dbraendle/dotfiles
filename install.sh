@@ -374,66 +374,47 @@ else
     print_status "Git not found - install via Brewfile first"
 fi
 
-# Step 8: SSH Setup (optional)
+# Step 8: SSH Configuration (optional)
 if command -v ssh-wunderbar &> /dev/null; then
     print_status "Step 8: SSH Configuration"
-    
-    # GitHub SSH setup
-    print_status "🐙 GitHub SSH Setup"
-    read -p "Setup SSH for GitHub? (y/n): " -n 1 -r
+    read -p "🔑 Configure SSH keys and servers? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Setting up SSH for GitHub..."
-        ssh-wunderbar github
-        if [ $? -eq 0 ]; then
-            print_success "SSH GitHub setup completed"
-        else
-            print_status "SSH GitHub setup failed - you can run 'ssh-wunderbar github' manually later"
-        fi
-    else
-        print_status "SSH GitHub setup skipped"
-    fi
-    
-    echo ""
-    
-    # General SSH server setup
-    print_status "🔑 Additional SSH Servers"
-    read -p "Setup SSH for additional servers? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Opening interactive SSH setup..."
-        print_status "You can add servers with: ssh-wunderbar --add-service <name> <host> <user> <port>"
-        print_status "Or use interactive mode: ssh-wunderbar"
         echo ""
-        read -p "Open interactive SSH setup now? (y/n): " -n 1 -r  
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            ssh-wunderbar
-        else
-            print_status "You can run 'ssh-wunderbar' anytime to setup servers"
-        fi
+        print_status "🚀 Opening ssh-wunderbar interactive setup..."
+        print_status "Configure your SSH keys and servers. When finished, the setup will continue."
+        echo ""
+        echo "Press Enter to continue..."
+        read
+        
+        # Run ssh-wunderbar interactively - user returns to install.sh when done
+        ssh-wunderbar
+        
+        echo ""
+        print_success "🔑 SSH configuration completed!"
+        print_status "Continuing with setup..."
     else
-        print_status "Additional SSH setup skipped"
+        print_status "SSH configuration skipped"
+        print_status "You can run 'ssh-wunderbar' anytime to setup SSH keys"
     fi
-    
 elif [ -f "ssh/ssh-setup.sh" ]; then
-    print_status "Step 8: SSH GitHub Setup (Legacy)"
-    read -p "🔑 Setup SSH for GitHub using legacy script? (y/n): " -n 1 -r
+    print_status "Step 8: SSH Configuration (Legacy)"
+    read -p "🔑 Configure SSH using legacy script? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Running legacy SSH GitHub setup..."
+        print_status "Running legacy SSH setup..."
         chmod +x ssh/ssh-setup.sh
         ./ssh/ssh-setup.sh
         if [ $? -eq 0 ]; then
-            print_success "SSH GitHub setup completed"
+            print_success "SSH setup completed"
         else
-            print_status "SSH GitHub setup skipped or failed"
+            print_status "SSH setup skipped or failed"
         fi
     else
-        print_status "SSH GitHub setup skipped"
+        print_status "SSH setup skipped"
     fi
 else
-    print_status "Step 8: No SSH setup tool found - install ssh-wunderbar first or run manually later"
+    print_status "Step 8: SSH setup not available - install ssh-wunderbar first"
 fi
 
 echo ""
