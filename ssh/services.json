@@ -1,0 +1,44 @@
+{
+  "version": "1.0",
+  "services": {
+    "github": {
+      "type": "git",
+      "hostname": "github.com",
+      "user": "git",
+      "port": 22,
+      "description": "GitHub SSH authentication",
+      "readonly": true,
+      "test_command": "ssh -T git@github.com"
+    },
+    "pihole": {
+      "type": "server",
+      "hostname": "192.168.178.32",
+      "user": "pi",
+      "port": 22,
+      "description": "Pi-hole DNS server",
+      "test_command": "uptime"
+    },
+    "DigitalOcean-0": {
+      "type": "server",
+      "hostname": "209.38.217.45",
+      "user": "root",
+      "port": 22,
+      "description": "DigitalOcean Droplet; originally for BINDER & T3",
+      "test_command": "uptime"
+    },
+    "All-Inkl-0": {
+      "type": "server",
+      "hostname": "w0103394.kasserver.com",
+      "user": "ssh-w0103394",
+      "port": 22,
+      "description": "My old All-Inkl-Server",
+      "test_command": "uptime"
+    }
+  },
+  "settings": {
+    "default_key_type": "ed25519",
+    "auto_backup_config": true,
+    "cleanup_old_keys": false,
+    "key_rotation_days": 365
+  }
+}

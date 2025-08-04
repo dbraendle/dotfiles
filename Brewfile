@@ -38,6 +38,7 @@ cask "google-chrome"            # Browser with dev tools
 cask "iterm2"                   # Better terminal
 cask "docker-desktop"           # Docker Desktop (includes CLI + GUI)
 cask "claude"                   # Claude Desktop (full version)
+cask "transmit"                 # File transfer client
 
 # Creative & Design
 cask "adobe-creative-cloud"     # Adobe Creative Cloud manager

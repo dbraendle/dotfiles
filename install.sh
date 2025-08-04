@@ -137,6 +137,85 @@ else
     print_status "Step 4: Brewfile not found - skipping app installation"
 fi
 
+# Step 4.5: SSH Management Tool
+install_ssh_wunderbar() {
+    # Finde das aktuelle dotfiles Verzeichnis
+    local dotfiles_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local dotfiles_name=$(basename "$dotfiles_dir")
+    
+    print_status "Installing ssh-wunderbar..."
+    echo "📦 Where should ssh-wunderbar be installed?"
+    echo "  1) /usr/local/bin (recommended - system-wide)"
+    echo "  2) ~/.local/bin (user-only)"
+    echo "  3) $dotfiles_dir/bin (with your $dotfiles_name)"
+    
+    read -p "Choice (1-3, default: 1): " install_choice
+    install_choice=${install_choice:-1}
+    
+    case $install_choice in
+        1) install_dir="/usr/local/bin" ;;
+        2) 
+            install_dir="$HOME/.local/bin"
+            mkdir -p "$install_dir"
+            # Add to PATH if not already there
+            if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+                echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+                print_status "Added ~/.local/bin to PATH in ~/.zshrc"
+            fi
+            ;;
+        3) 
+            install_dir="$dotfiles_dir/bin"
+            mkdir -p "$install_dir"
+            # Add to PATH if not already there
+            if [[ ":$PATH:" != *":$install_dir:"* ]]; then
+                echo "export PATH=\"$install_dir:\$PATH\"" >> ~/.zshrc
+                print_status "Added $install_dir to PATH in ~/.zshrc"
+            fi
+            ;;
+        *)
+            print_status "Invalid choice, defaulting to /usr/local/bin"
+            install_dir="/usr/local/bin"
+            ;;
+    esac
+    
+    mkdir -p "$install_dir"
+    
+    # Download ssh-wunderbar
+    if command -v gh &> /dev/null; then
+        print_status "🐙 Downloading via GitHub CLI..."
+        if gh repo clone dbraendle/ssh-wunderbar /tmp/ssh-wunderbar; then
+            cp /tmp/ssh-wunderbar/ssh-wunderbar "$install_dir/"
+            cp /tmp/ssh-wunderbar/test.sh "$install_dir/"
+            rm -rf /tmp/ssh-wunderbar
+        else
+            print_status "GitHub CLI download failed, falling back to direct download..."
+            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$install_dir/ssh-wunderbar"
+            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
+        fi
+    else
+        print_status "📥 Downloading directly from GitHub..."
+        curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$install_dir/ssh-wunderbar"
+        curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
+    fi
+    
+    chmod +x "$install_dir/ssh-wunderbar"
+    chmod +x "$install_dir/test.sh"
+    
+    print_success "✅ ssh-wunderbar installed to $install_dir"
+    print_status "Usage: ssh-wunderbar --help"
+    
+    return 0
+}
+
+print_status "Step 4.5: SSH Management Tool"
+read -p "🔑 Install ssh-wunderbar for SSH key management? (y/n): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    install_ssh_wunderbar
+else
+    print_status "ssh-wunderbar installation skipped"
+fi
+
 # Step 5: NPM Global Packages (optional)
 if [ -f "npm-install.sh" ]; then
     print_status "Step 5: NPM Global Packages"
@@ -242,12 +321,27 @@ else
 fi
 
 # Step 8: SSH GitHub Setup (optional)
-if [ -f "ssh/ssh-setup.sh" ]; then
+if command -v ssh-wunderbar &> /dev/null; then
     print_status "Step 8: SSH GitHub Setup"
-    read -p "🔑 Setup SSH for GitHub? (y/n): " -n 1 -r
+    read -p "🔑 Setup SSH for GitHub using ssh-wunderbar? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Running SSH GitHub setup..."
+        print_status "Setting up SSH for GitHub..."
+        ssh-wunderbar github
+        if [ $? -eq 0 ]; then
+            print_success "SSH GitHub setup completed"
+        else
+            print_status "SSH GitHub setup failed - you can run 'ssh-wunderbar github' manually later"
+        fi
+    else
+        print_status "SSH GitHub setup skipped"
+    fi
+elif [ -f "ssh/ssh-setup.sh" ]; then
+    print_status "Step 8: SSH GitHub Setup (Legacy)"
+    read -p "🔑 Setup SSH for GitHub using legacy script? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_status "Running legacy SSH GitHub setup..."
         chmod +x ssh/ssh-setup.sh
         ./ssh/ssh-setup.sh
         if [ $? -eq 0 ]; then
@@ -259,7 +353,7 @@ if [ -f "ssh/ssh-setup.sh" ]; then
         print_status "SSH GitHub setup skipped"
     fi
 else
-    print_status "Step 8: SSH setup script not found - skipping SSH GitHub setup"
+    print_status "Step 8: No SSH setup tool found - install ssh-wunderbar first or run manually later"
 fi
 
 echo ""
@@ -268,6 +362,10 @@ print_success "✅ Setup completed successfully!"
 echo "=========================================="
 print_status "Next steps:"
 echo "  • Restart terminal to apply new configuration"
+if command -v ssh-wunderbar &> /dev/null; then
+    echo "  • Use 'ssh-wunderbar --help' to manage SSH keys"
+    echo "  • Add servers with: ssh-wunderbar --add-service myserver host user port"
+fi
 echo "  • Open VS Code and sign in to GitHub for settings sync"
 echo "  • Customize Finder sidebar manually if needed"
 echo "  • Enjoy your new Mac setup! 🎉"

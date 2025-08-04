@@ -1,401 +1,301 @@
-# 🚀 Mac Dotfiles & Development Setup
+# 🚀 Ultimate Mac Development Setup
 
-Automated macOS setup for developers and designers. Transform a fresh Mac into a fully configured development environment with a single command.
+**Transform any Mac into a fully configured development powerhouse with modern CLI tools and zero-friction automation.**
 
-## ✨ Features
+## 🎯 Key Principles
 
-### 🛠️ Development Tools
-- **Git** (latest version via Homebrew)
-- **Node.js** with npm for JavaScript development
-- **TypeScript** compiler
-- **Prettier** code formatter
-- **Claude Code** AI coding assistant
+### **Modular by Design**
+Every script works standalone or orchestrated together. Mix, match, and customize as needed.
 
-### 📱 Essential Apps
-- **Visual Studio Code** - Primary code editor
-- **Google Chrome** - Browser with developer tools
-- **iTerm2** - Enhanced terminal
-- **Docker Desktop** - Containerization platform
-- **AppCleaner** - Complete app uninstaller
-- **Stats** - System monitor
-- **The Unarchiver** - Archive extraction tool
+### **Smart Automation** 
+JSON-driven configuration with intelligent defaults. One command setup, zero manual configuration.
 
-### ⚡ CLI Enhancements
-- **ripgrep** (`rg`) - Blazing fast text search
-- **bat** - `cat` with syntax highlighting
-- **eza** - Modern `ls` replacement with colors
-- **jq** - JSON processor
-- **tree** - Directory visualization
-- **mas** - Mac App Store command line interface
+### **Modern CLI Patterns**
+Built like the tools you love - Docker, Git, npm. Consistent, predictable, powerful.
 
-### 🖥️ Terminal Configuration
-- **Oh My Zsh** with robbyrussell theme
-- **zsh-autosuggestions** for command completion
-- **zsh-syntax-highlighting** for syntax colors
-- Custom `.zshrc` with aliases and optimizations
-
-### ⚙️ macOS System Optimizations
-- **Finder**: All bars visible, list view, clean desktop
-- **Screenshots**: Custom folder (`~/Desktop/Screenshots`), PNG format
-- **Menu Bar**: Seconds in clock, weather & Bluetooth visible, battery percentage
-- **Keyboard**: Fast key repeat for coding
-- **Trackpad**: Tap-to-click enabled
-- **Performance**: Faster animations, optimized energy settings
-- **Security**: Firewall enabled
-
-## 🎯 Quick Start
-
-```bash
-# Clone this repository
-git clone https://github.com/dbraendle/dotfiles.git
-cd dotfiles
-
-# Make installer executable
-chmod +x install.sh
-
-# Run the setup (interactive - you choose what to install)
-./install.sh
-```
-
-## 📋 Installation Process
-
-The installer is fully interactive and modular. Each step is optional:
-
-### Step 1: Xcode Command Line Tools
-Required for development tools. Installs automatically if missing.
-
-### Step 2: Homebrew Package Manager
-Installs or updates Homebrew - the essential macOS package manager.
-
-### Step 3: Apps Installation
-Installs all packages from `Brewfile`. You'll be prompted:
-```
-📦 Install apps from Brewfile? (y/n):
-```
-
-### Step 4: Terminal Setup
-Installs Oh My Zsh and configures your terminal:
-```
-🖥️ Install Oh My Zsh and terminal configuration? (y/n):
-```
-
-### Step 5: Git Configuration
-Sets up Git with your name and email:
-```
-🔧 Configure Git user settings? (y/n):
-📧 Git email address: your.email@example.com
-👤 Git username: Your Name
-```
-
-### Step 6: NPM Global Packages
-Installs essential Node.js tools:
-```
-📦 Install NPM global packages? (y/n):
-```
-
-### Step 7: macOS System Settings
-Applies developer and designer optimizations:
-```
-🔧 Apply macOS system settings? (y/n):
-```
-
-## 📁 File Structure
-
-```
-dotfiles/
-├── install.sh              # Main installer script
-├── brew-install.sh         # Homebrew-only installer
-├── update.sh               # System update script
-├── Brewfile                # Homebrew packages definition
-├── npm-install.sh          # NPM global packages installer
-├── macos-settings.sh       # macOS system preferences
-├── .editorconfig           # Editor configuration template
-├── .zshrc                  # Zsh terminal configuration
-├── .gitconfig              # Git configuration template
-├── ssh/                    # SSH configuration
-│   ├── config.github       # GitHub SSH config
-│   └── ssh-setup.sh        # SSH key setup script
-├── README.md               # This file
-└── LICENSE                 # MIT License
-```
-
-## 🔧 Individual Components
-
-### Run Specific Parts Only
-
-You can run individual components separately:
-
-```bash
-# Install Homebrew packages only
-./brew-install.sh
-# OR
-brew bundle install
-
-# Check for system updates
-./update.sh
-
-# Apply macOS settings only
-source macos-settings.sh
-
-# Install NPM packages only
-./npm-install.sh
-
-# Install terminal configuration only
-cp .zshrc ~/.zshrc && source ~/.zshrc
-```
-
-### Customize Before Installing
-
-1. **Edit Brewfile**: Add/remove apps you want
-2. **Edit npm-install.sh**: Modify the packages array
-3. **Edit macos-settings.sh**: Adjust system preferences
-4. **Edit .zshrc**: Customize terminal aliases and functions
-
-## 🎨 What Gets Installed
-
-### CLI Tools (via Homebrew)
-```
-git, gh, curl, wget, jq, tree, node
-ripgrep, bat, eza, mas
-zsh-autosuggestions, zsh-syntax-highlighting
-```
-
-### GUI Applications (via Homebrew Cask)
-```
-visual-studio-code       # Primary code editor
-sublime-text            # Lightweight code editor
-google-chrome           # Browser with dev tools
-iterm2                  # Enhanced terminal
-docker-desktop          # Docker Desktop (CLI + GUI)
-claude                  # Claude Desktop app
-adobe-creative-cloud    # Adobe Creative Suite manager
-ankerwork              # Video conferencing
-spotify                # Music streaming
-vlc                    # Media player
-downie                 # Video downloader
-audiobook-builder      # Audiobook creation
-the-unarchiver         # Archive extraction
-appcleaner            # Complete app uninstaller
-stats                 # System monitor (free)
-```
-
-### Mac App Store Apps (via mas)
-```
-Pages                # Apple's word processor
-Numbers              # Apple's spreadsheet app
-Keynote              # Apple's presentation app
-Strongbox            # KeePass password manager
-Things 3             # Task management app
-MindSpace            # Mind mapping & diagrams
-1Blocker             # Safari ad blocker with customization
-AdGuard for Safari   # Premium ad blocker
-Hush                 # Cookie banner blocker for Safari
-```
-
-### NPM Global Packages
-```
-@anthropic-ai/claude-code    # AI coding assistant
-typescript                   # JavaScript with types
-prettier                    # Code formatter
-```
-
-### Optional Apps (Commented in Brewfile)
-Uncomment in `Brewfile` if you want them:
-```
-# GUI Apps (Homebrew Cask)
-firefox, slack, discord, notion, figma
-1password, rectangle, cleanmymac
-
-# Mac App Store Apps  
-Xcode (15+ GB), MindNode, Wipr 2, Claude by Anthropic
-1Password 7, Magnet, Pixelmator Pro
-```
-
-### Mac App Store Setup
-The setup includes `mas` (Mac App Store CLI) for installing App Store apps via command line. You need to:
-1. **Sign in to App Store** first
-2. **Own the apps** (for paid apps) or have them in your purchase history
-3. **Run the installer** - Mac App Store apps will install automatically
-
-Find app IDs: `mas search "app name"`
-
-## 🔄 Safe Re-runs
-
-The installer is designed to be run multiple times safely:
-- ✅ Checks existing installations
-- ✅ Updates packages to latest versions
-- ✅ Skips already configured settings
-- ✅ Won't break existing configurations
-
-## 🗑️ Uninstalling Apps
-
-### Complete App Removal
-The Brewfile includes uninstall command references:
-
-```bash
-# Basic uninstall (brew packages)
-brew uninstall <package>
-brew uninstall --force <package>
-
-# Complete cask removal (recommended)
-brew uninstall --cask --zap <package>
-brew uninstall --cask --force <package>
-brew uninstall --cask --zap --force <package>
-
-# Mac App Store apps
-mas uninstall <app-id>
-```
-
-### Why --zap?
-`--zap` removes **all traces** including preferences, caches, and support files. Without it, apps leave files in `~/Library/`.
-
-## 🛠️ Troubleshooting
-
-### Installation Fails
-```bash
-# Check if Xcode Command Line Tools are installed
-xcode-select -p
-
-# Manually install if needed
-xcode-select --install
-```
-
-### Homebrew Issues
-```bash
-# Update Homebrew
-brew update && brew upgrade
-
-# Check for issues
-brew doctor
-```
-
-### Terminal Not Loading Configuration
-```bash
-# Reload shell configuration
-source ~/.zshrc
-
-# Or restart terminal completely
-```
-
-### NPM Packages Fail
-```bash
-# Ensure Node.js is installed
-node --version
-npm --version
-
-# Install Node.js if missing
-brew install node
-```
-
-## ⚙️ Customization
-
-### Add Your Own Apps
-Edit `Brewfile` and add:
-```ruby
-# CLI tools
-brew "your-tool"
-
-# GUI apps
-cask "your-app"
-```
-
-### Add NPM Packages
-Edit `npm-install.sh` and add to the packages array:
-```bash
-packages=(
-    "existing-package:Description"
-    "your-package:Your description"
-)
-```
-
-### Modify macOS Settings
-Edit `macos-settings.sh` to add your preferences:
-```bash
-# Your custom setting
-defaults write com.apple.something setting -bool true
-```
-
-## 🎯 Philosophy
-
-This setup follows these principles:
-
-- **Homebrew First**: Use Homebrew for system tools and GUI apps
-- **Modular Design**: Each component can be installed separately
-- **Interactive Setup**: You choose what gets installed
-- **Safe Re-runs**: Can be executed multiple times without issues
-- **No Personal Data**: Templates ask for user input interactively
-- **Modern Defaults**: Uses current best practices (main branch, latest tools)
-
-## 🤝 Contributing
-
-Feel free to fork this repository and adapt it to your needs! If you have improvements or fixes, pull requests are welcome.
-
-## 📱 After Installation
-
-### Next Steps
-1. **Restart Terminal** to apply new configuration
-2. **Open VS Code** and sign in to GitHub for settings sync
-3. **Configure Finder Sidebar** manually (add your favorite folders)
-4. **Run Claude Code**: `claude` command is now available
-5. **Set up Docker**: Start Docker Desktop and configure preferences
-6. **Customize Further**: Adjust any settings to your preference
-
-### Useful Commands
-```bash
-# System maintenance
-./update.sh              # Check for system updates
-
-# Start Claude Code
-claude
-
-# Format code with Prettier
-prettier --write .
-
-# Type check with TypeScript
-tsc --noEmit
-
-# Search files with ripgrep
-rg "search term"
-
-# Better file listing
-eza -la
-
-# Mac App Store management
-mas search "app name"    # Find app IDs
-mas install 123456       # Install by ID
-mas uninstall 123456     # Uninstall by ID
-```
-
-### Package Management
-```bash
-# Homebrew-only updates
-./brew-install.sh
-
-# Check what's outdated
-brew outdated
-npm outdated -g
-
-# Update everything
-brew upgrade
-npm update -g
-```
-
-## 🐛 Known Limitations
-
-- Some Finder sidebar settings require manual configuration
-- DNS settings are preserved (won't override Pi-hole/custom DNS)
-- Accent popup remains enabled (some prefer this for international characters)
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file. Feel free to use, modify, and distribute.
-
-## 🙏 Acknowledgments
-
-Inspired by the amazing dotfiles community on GitHub. Special thanks to all the open-source tools that make development on macOS enjoyable.
+### **Zero-Friction Experience**
+From fresh Mac to fully configured development environment in minutes, not hours.
 
 ---
 
-**Happy coding!** 🎉
+## 🛠️ Core Scripts
 
-If you find this useful, consider starring ⭐ the repository!
+### 🔑 SSH Manager (Ultimate Edition)
+**The most powerful SSH setup tool you'll ever use.**
+
+```bash
+# Interactive menu with all your services
+./ssh-setup.sh
+
+# Setup from configuration
+./ssh-setup.sh github                    # GitHub SSH
+./ssh-setup.sh pihole                    # Pi-hole server
+
+# Non-interactive setup
+./ssh-setup.sh nas 192.168.1.50 admin 22
+
+# Service management
+./ssh-setup.sh --add-service work 10.0.0.1 root 2222 "Work server"
+./ssh-setup.sh --list                    # Show all services
+./ssh-setup.sh --setup-all               # Configure everything
+./ssh-setup.sh --rotate-keys pihole      # Generate new keys + cleanup old
+
+# Advanced features
+./ssh-setup.sh --remove-service old-server
+./ssh-setup.sh --help                    # Full documentation
+```
+
+**Features:**
+- **JSON-driven configuration** - Persistent service definitions
+- **Smart key management** - Reuse existing or generate new keys
+- **Automatic deployment** - `ssh-copy-id` integration with testing
+- **Service discovery** - Never forget what servers you have
+- **Key rotation** - Security best practices made easy
+- **Batch operations** - Setup entire infrastructure at once
+
+**Perfect for:**
+- Fresh Mac setup - restore all SSH access instantly
+- Team onboarding - consistent SSH configuration  
+- Infrastructure management - systematic server access
+- Security maintenance - regular key rotation
+
+### 📦 Package Managers
+
+```bash
+# Install all applications
+./brew-install.sh                        # GUI apps + CLI tools
+
+# Homebrew only operations
+brew bundle install                      # From Brewfile
+brew bundle cleanup                      # Remove unused apps
+```
+
+### 🔄 System Maintenance
+
+```bash
+# Check everything for updates
+./update.sh
+
+# Targeted updates
+./update.sh --brew-only                  # Just Homebrew packages
+./update.sh --npm-only                   # Just npm packages
+./update.sh --system-only                # Just macOS updates
+```
+
+### ⚙️ System Configuration
+
+```bash
+# Apply all macOS optimizations
+source macos-settings.sh
+
+# Individual configurations
+defaults write com.apple.finder ShowPathbar -bool true
+```
+
+---
+
+## 🎯 Orchestration
+
+### Master Installer
+```bash
+# Interactive setup - choose what you want
+./install.sh
+
+# Headless automation - install everything
+./install.sh --headless --yes-to-all
+
+# Partial setups
+./install.sh --skip-apps                 # Skip application installation
+./install.sh --ssh-only                  # Only configure SSH
+```
+
+### Fresh Mac Workflow
+```bash
+# 1. Clone repository
+git clone https://github.com/your-username/dotfiles.git
+cd dotfiles
+
+# 2. One command setup
+./install.sh
+
+# 3. Restore SSH access to entire infrastructure  
+./ssh-setup.sh --setup-all
+```
+
+### Team/Corporate Setup
+```bash
+# 1. Fork and customize services.json with company servers
+# 2. Team members clone and run
+./install.sh && ./ssh-setup.sh --setup-all
+# 3. Entire team has identical, working development environment
+```
+
+---
+
+## 🏗️ Architecture
+
+### File Structure
+```
+dotfiles/
+├── install.sh              # Master orchestrator
+├── update.sh                # System update manager  
+├── brew-install.sh          # Standalone app installer
+├── macos-settings.sh        # System configuration
+├── Brewfile                 # Package definitions
+├── .zshrc                   # Terminal configuration
+├── .editorconfig           # Code editor settings
+└── ssh/
+    ├── ssh-setup.sh         # Ultimate SSH manager
+    ├── services.json        # Service definitions
+    └── config.github        # GitHub SSH template
+```
+
+### Configuration Files
+- **`Brewfile`** - Declarative package management
+- **`services.json`** - SSH service definitions
+- **`.zshrc`** - Terminal aliases and functions
+- **`.editorconfig`** - Consistent coding standards
+
+### Smart Defaults
+- **Homebrew-first** - Consistent package management
+- **ED25519 keys** - Modern cryptography
+- **JSON configuration** - Structured, portable settings
+- **Backup-aware** - Never lose existing configurations
+
+---
+
+## 🎨 What Gets Installed
+
+### Development Ecosystem
+**CLI Tools:** `git`, `gh`, `node`, `npm`, `jq`, `ripgrep`, `bat`, `eza`  
+**Editors:** VS Code, Sublime Text  
+**Containers:** Docker Desktop  
+**AI Tools:** Claude Desktop, Claude Code CLI
+
+### Creative & Productivity  
+**Design:** Adobe Creative Cloud  
+**Media:** Spotify, VLC, Downie  
+**Productivity:** Things 3, MindSpace  
+**Communication:** AnkerWork
+
+### System & Security
+**Monitoring:** Stats (system monitor)  
+**Security:** 1Blocker, AdGuard for Safari, Hush  
+**Utilities:** The Unarchiver, AppCleaner
+
+### Mac App Store Integration
+Automated installation of App Store apps with `mas` CLI tool. Pre-configured with productivity essentials.
+
+---
+
+## 🚀 Advanced Usage
+
+### SSH Service Management
+```bash
+# Add new infrastructure
+./ssh-setup.sh --add-service prod-db 10.0.1.100 postgres 5432
+
+# Batch server setup
+./ssh-setup.sh --add-service web1 web1.company.com deploy 22
+./ssh-setup.sh --add-service web2 web2.company.com deploy 22  
+./ssh-setup.sh --setup-all
+
+# Security maintenance
+./ssh-setup.sh --rotate-keys prod-db    # New keys + old key cleanup
+```
+
+### Custom Configurations
+```bash
+# Extend package list
+echo 'brew "your-tool"' >> Brewfile
+echo 'cask "your-app"' >> Brewfile
+
+# Add custom servers to services.json
+{
+  "services": {
+    "your-server": {
+      "hostname": "your-host.com",
+      "user": "your-user", 
+      "port": 22,
+      "description": "Your custom server"
+    }
+  }
+}
+```
+
+### Automation & CI/CD
+```bash
+# Non-interactive installation
+export HOMEBREW_NO_INSTALL_CLEANUP=1
+./install.sh --headless --skip-interactive
+
+# SSH setup in pipelines
+./ssh-setup.sh production prod.company.com deploy 22
+```
+
+---
+
+## 🛠️ Troubleshooting & Maintenance
+
+### Common Issues
+```bash
+# Missing dependencies
+brew doctor                              # Check Homebrew health
+./ssh-setup.sh --help                   # SSH manager documentation
+
+# Permission issues  
+sudo xcodebuild -license accept         # Accept Xcode license
+chmod +x *.sh                          # Fix script permissions
+
+# Update everything
+./update.sh                             # System-wide updates
+git pull && ./install.sh               # Update dotfiles
+```
+
+### Safe Operations
+- **Automatic backups** - SSH configs backed up before changes
+- **Non-destructive** - Existing configurations preserved
+- **Rollback capable** - Git history for all changes  
+- **Validation** - Scripts check dependencies and permissions
+
+### Monitoring & Health
+```bash
+./ssh-setup.sh --list                   # Review SSH configuration
+brew bundle check                       # Verify installed packages
+./update.sh --check-only                # Check for updates without installing
+```
+
+---
+
+## 🤝 Philosophy
+
+### **"Make It Simple"**
+Complex infrastructure management shouldn't require complex tools. One command should do what used to take hours.
+
+### **Configuration as Code** 
+Your development environment should be versioned, shareable, and reproducible. No more "it works on my machine."
+
+### **Modern CLI Design**
+Built with patterns from tools you already know and love. Consistent, discoverable, powerful.
+
+### **Team-Ready**
+Works for individuals and scales to entire engineering teams. Same configuration, same results, everywhere.
+
+---
+
+## 🎉 Quick Start
+
+```bash
+# Get started in 30 seconds
+git clone https://github.com/your-username/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./install.sh
+```
+
+**That's it.** Your Mac is now a development powerhouse with enterprise-grade SSH management, modern tooling, and zero-friction workflows.
+
+---
+
+**Built with ❤️ for developers who value their time.**
+
+*Transform your Mac. Transform your workflow. Transform your team.*
