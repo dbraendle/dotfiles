@@ -201,6 +201,8 @@ install_ssh_wunderbar() {
     # Download ssh-wunderbar
     if command -v gh &> /dev/null; then
         print_status "🐙 Downloading via GitHub CLI..."
+        # Clean up any existing temp directory
+        rm -rf /tmp/ssh-wunderbar
         if gh repo clone dbraendle/ssh-wunderbar /tmp/ssh-wunderbar; then
             if [[ "$install_dir" == "/usr/local/bin" ]]; then
                 sudo cp /tmp/ssh-wunderbar/ssh-wunderbar "$install_dir/"
@@ -372,10 +374,13 @@ else
     print_status "Git not found - install via Brewfile first"
 fi
 
-# Step 8: SSH GitHub Setup (optional)
+# Step 8: SSH Setup (optional)
 if command -v ssh-wunderbar &> /dev/null; then
-    print_status "Step 8: SSH GitHub Setup"
-    read -p "🔑 Setup SSH for GitHub using ssh-wunderbar? (y/n): " -n 1 -r
+    print_status "Step 8: SSH Configuration"
+    
+    # GitHub SSH setup
+    print_status "🐙 GitHub SSH Setup"
+    read -p "Setup SSH for GitHub? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_status "Setting up SSH for GitHub..."
@@ -388,6 +393,29 @@ if command -v ssh-wunderbar &> /dev/null; then
     else
         print_status "SSH GitHub setup skipped"
     fi
+    
+    echo ""
+    
+    # General SSH server setup
+    print_status "🔑 Additional SSH Servers"
+    read -p "Setup SSH for additional servers? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_status "Opening interactive SSH setup..."
+        print_status "You can add servers with: ssh-wunderbar --add-service <name> <host> <user> <port>"
+        print_status "Or use interactive mode: ssh-wunderbar"
+        echo ""
+        read -p "Open interactive SSH setup now? (y/n): " -n 1 -r  
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            ssh-wunderbar
+        else
+            print_status "You can run 'ssh-wunderbar' anytime to setup servers"
+        fi
+    else
+        print_status "Additional SSH setup skipped"
+    fi
+    
 elif [ -f "ssh/ssh-setup.sh" ]; then
     print_status "Step 8: SSH GitHub Setup (Legacy)"
     read -p "🔑 Setup SSH for GitHub using legacy script? (y/n): " -n 1 -r
