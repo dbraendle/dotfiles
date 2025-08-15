@@ -124,12 +124,14 @@ fi
 # Step 4: Apps Installation (optional)
 if [ -f "Brewfile" ]; then
     print_status "Step 4: Apps Installation" 
-    read -p "📦 Install apps from Brewfile? (y/n): " -n 1 -r
+    read -p "📦 Install and update apps from Brewfile? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_status "Installing apps from Brewfile..."
         brew bundle install
-        print_success "Apps installed"
+        print_status "Updating existing Homebrew packages..."
+        brew upgrade
+        print_success "Apps installed and updated"
     else
         print_status "Apps installation skipped"
     fi

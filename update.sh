@@ -96,6 +96,38 @@ else
     print_success "All Homebrew packages are up to date"
 fi
 
+# Oh My Zsh updates
+if [ -d "$HOME/.oh-my-zsh" ]; then
+    print_status "Checking Oh My Zsh updates..."
+    cd "$HOME/.oh-my-zsh"
+    
+    # Check if there are updates available
+    git fetch origin >/dev/null 2>&1
+    LOCAL=$(git rev-parse HEAD)
+    REMOTE=$(git rev-parse origin/master)
+    
+    if [ "$LOCAL" != "$REMOTE" ]; then
+        echo ""
+        print_warning "Oh My Zsh updates available"
+        
+        read -p "🔄 Update Oh My Zsh? (y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            print_status "Updating Oh My Zsh..."
+            git pull origin master >/dev/null 2>&1
+            print_success "Oh My Zsh updated"
+        else
+            print_status "Oh My Zsh updates skipped"
+        fi
+    else
+        print_success "Oh My Zsh is up to date"
+    fi
+    
+    cd - >/dev/null
+else
+    print_status "Oh My Zsh not installed - skipping update check"
+fi
+
 # npm global packages
 if command -v npm >/dev/null 2>&1; then
     print_status "Checking npm global packages..."
