@@ -1,6 +1,9 @@
 # Oh My Zsh Configuration
 export ZSH="$HOME/.oh-my-zsh"
 
+# Disable automatic updates (zsh plugins managed by Homebrew)
+DISABLE_AUTO_UPDATE="true"
+
 # Theme (clean and minimal)
 ZSH_THEME="robbyrussell"
 

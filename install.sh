@@ -325,20 +325,35 @@ else
 fi
 
 # Step 5: NPM Global Packages (optional)
-if [ -f "npm-install.sh" ]; then
-    print_status "Step 5: NPM Global Packages"
-    read -p "📦 Install NPM global packages? (y/n): " -n 1 -r
+print_status "Step 5: NPM Global Packages"
+if command -v npm >/dev/null 2>&1; then
+    read -p "📦 Install/update NPM global packages? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Running NPM packages installation..."
-        chmod +x npm-install.sh
-        ./npm-install.sh
-        print_success "NPM packages installed"
+        # Run npm-install.sh if it exists, otherwise do basic npm update
+        if [ -f "npm-install.sh" ]; then
+            print_status "Running NPM packages installation script..."
+            chmod +x npm-install.sh
+            ./npm-install.sh
+            print_success "NPM packages installed via script"
+        fi
+        
+        # Also check for global package updates
+        print_status "Checking npm global packages..."
+        npm_outdated=$(npm outdated -g 2>/dev/null || echo "")
+        
+        if [ -n "$npm_outdated" ]; then
+            print_status "Updating npm global packages..."
+            npm update -g
+            print_success "npm global packages updated"
+        else
+            print_success "All npm global packages are up to date"
+        fi
     else
         print_status "NPM packages installation skipped"
     fi
 else
-    print_status "Step 5: npm-install.sh not found - skipping NPM packages"
+    print_status "Step 5: npm not installed - will be available after Node.js from Brewfile"
 fi
 
 # Step 6: Terminal Setup (optional)
@@ -346,13 +361,17 @@ print_status "Step 6: Terminal Setup"
 read -p "🖥️  Install Oh My Zsh and terminal configuration? (y/n): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-    # Install Oh My Zsh
+    # Install/Update Oh My Zsh
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
         print_status "Installing Oh My Zsh..."
         sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
         print_success "Oh My Zsh installed"
     else
-        print_success "Oh My Zsh already installed"
+        print_status "Updating Oh My Zsh..."
+        cd "$HOME/.oh-my-zsh"
+        git pull origin master >/dev/null 2>&1
+        cd - >/dev/null
+        print_success "Oh My Zsh updated"
     fi
     
     # Install .zshrc configuration
@@ -492,6 +511,14 @@ elif [ -f "ssh/ssh-setup.sh" ]; then
 else
     print_status "Step 8: SSH setup not available - install ssh-wunderbar first"
 fi
+
+# Cleanup
+print_status "Cleaning up caches..."
+brew cleanup
+if command -v npm >/dev/null 2>&1; then
+    npm cache clean --force >/dev/null 2>&1 || true
+fi
+print_success "Cleanup completed"
 
 echo ""
 echo "=========================================="

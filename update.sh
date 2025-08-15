@@ -29,6 +29,28 @@ echo "=========================================="
 
 # Check what needs updating first
 
+# Xcode Command Line Tools
+print_status "Checking Xcode Command Line Tools..."
+if xcode-select -p &> /dev/null; then
+    # Check if there's an update available
+    if softwareupdate -l 2>/dev/null | grep -q "Command Line Tools"; then
+        print_warning "Xcode Command Line Tools update available"
+        read -p "🔄 Update Xcode Command Line Tools? (y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            print_status "Updating Xcode Command Line Tools..."
+            sudo xcode-select --install
+            print_success "Xcode Command Line Tools update started"
+        else
+            print_status "Xcode Command Line Tools update skipped"
+        fi
+    else
+        print_success "Xcode Command Line Tools are up to date"
+    fi
+else
+    print_status "Xcode Command Line Tools not installed - run install.sh first"
+fi
+
 # Update ssh-wunderbar if installed
 if command -v ssh-wunderbar &> /dev/null; then
     print_status "Checking ssh-wunderbar for updates..."
@@ -156,6 +178,9 @@ fi
 # Cleanup
 print_status "Cleaning up..."
 brew cleanup
+if command -v npm >/dev/null 2>&1; then
+    npm cache clean --force >/dev/null 2>&1 || true
+fi
 print_success "Cleanup completed"
 
 echo ""
