@@ -77,10 +77,19 @@ alias myip='curl -s https://httpbin.org/ip | jq -r .origin'
 alias scanner='open -a "Image Capture"'
 alias cleanup='brew cleanup && brew autoremove'
 
+# Scanner Commands (load from external file if available)
+if [ -f "$HOME/Dev/dotfiles/.scan-shortcuts.sh" ]; then
+    source "$HOME/Dev/dotfiles/.scan-shortcuts.sh"
+elif [ -f "$(dirname "${BASH_SOURCE[0]}")/.scan-shortcuts.sh" ]; then
+    source "$(dirname "${BASH_SOURCE[0]}")/.scan-shortcuts.sh"
+fi
+
 # Dotfiles Management (works from anywhere)
 alias .install='cd ~/Dev/dotfiles && ./install.sh'
 alias .update='cd ~/Dev/dotfiles && ./update.sh'
 alias .brew='cd ~/Dev/dotfiles && ./brew-install.sh'
+alias .zsh='cd ~/Dev/dotfiles && ./zsh-install.sh'
+alias ssh-setup='cd ~/Dev/dotfiles/ssh && ./ssh-setup.sh'
 # Removed mas-helper.sh - use 'brew bundle install' instead
 alias .license='sudo xcodebuild -license accept'
 
@@ -125,3 +134,4 @@ echo "🚀 Terminal ready - $(date '+%H:%M')"
 if command -v git &> /dev/null && [ -n "$(git config --global user.name 2>/dev/null)" ]; then
     echo "👤 Git: $(git config --global user.name)"
 fi
+

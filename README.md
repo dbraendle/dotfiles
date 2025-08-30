@@ -70,6 +70,19 @@ brew bundle install                      # From Brewfile
 brew bundle cleanup                      # Remove unused apps
 ```
 
+### 🐚 Terminal Management
+
+```bash
+# Update zsh configuration and plugins
+./zsh-install.sh                         # Interactive zsh setup
+
+# Quick aliases for dotfiles management
+.zsh                                     # Update zsh configuration
+.brew                                    # Install/update Brew packages
+.install                                 # Full system installation
+.update                                  # System-wide updates
+```
+
 ### 🔄 System Maintenance
 
 ```bash
@@ -140,9 +153,11 @@ dotfiles/
 ├── install.sh              # Master orchestrator
 ├── update.sh                # System update manager  
 ├── brew-install.sh          # Standalone app installer
+├── zsh-install.sh           # Zsh configuration manager
 ├── macos-settings.sh        # System configuration
 ├── Brewfile                 # Package definitions
 ├── .zshrc                   # Terminal configuration
+├── .scan-shortcuts.sh       # Scanner command shortcuts
 ├── .editorconfig           # Code editor settings
 └── ssh/
     ├── ssh-setup.sh         # Ultimate SSH manager
@@ -154,6 +169,7 @@ dotfiles/
 - **`Brewfile`** - Declarative package management
 - **`services.json`** - SSH service definitions
 - **`.zshrc`** - Terminal aliases and functions
+- **`.scan-shortcuts.sh`** - Scanner automation commands
 - **`.editorconfig`** - Consistent coding standards
 
 ### Smart Defaults
@@ -170,7 +186,7 @@ dotfiles/
 **CLI Tools:** `git`, `gh`, `node`, `npm`, `jq`, `ripgrep`, `bat`, `eza`  
 **Editors:** VS Code, Sublime Text  
 **Containers:** Docker Desktop  
-**AI Tools:** Claude Desktop, Claude Code CLI
+**AI Tools:** Claude Desktop, OpenAI Codex CLI
 
 ### Creative & Productivity  
 **Design:** Adobe Creative Cloud  

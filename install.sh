@@ -128,7 +128,15 @@ if [ -f "Brewfile" ]; then
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_status "Installing apps from Brewfile..."
-        brew bundle install
+        if ! brew bundle install; then
+            print_status "Some packages failed to install. Attempting to fix Node.js symlink issue..."
+            if brew list | grep -q "^node$"; then
+                print_status "Fixing Node.js symlink conflicts..."
+                brew link --overwrite node
+                print_status "Retrying Brewfile installation..."
+                brew bundle install
+            fi
+        fi
         print_status "Updating existing Homebrew packages..."
         brew upgrade
         print_success "Apps installed and updated"

@@ -153,6 +153,15 @@ defaults write NSGlobalDomain InitialKeyRepeat -int 15
 # Disable system-wide autocorrect
 defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
 
+# Disable continuous spell checking
+defaults write NSGlobalDomain NSAutomaticTextCompletionEnabled -bool false
+
+# Disable inline predictive text
+defaults write NSGlobalDomain NSAutomaticInlinePredictionEnabled -bool false
+
+# Disable suggested replies
+defaults write NSGlobalDomain NSAutomaticSuggestedRepliesEnabled -bool false
+
 # Disable automatic capitalization
 defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
 
@@ -229,6 +238,10 @@ echo "→ Configuring security..."
 
 # Enable firewall
 sudo defaults write /Library/Preferences/com.apple.alf globalstate -int 1
+
+# Disable password requirement after sleep/screensaver (stationärer Mac)
+defaults write com.apple.screensaver askForPassword -int 0
+defaults write com.apple.screensaver askForPasswordDelay -int 0
 
 
 
