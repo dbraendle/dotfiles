@@ -19,6 +19,8 @@ brew "jq"                       # JSON processor
 brew "tree"                     # Directory structure
 brew "node"                     # Node.js for JavaScript development
 brew "ffmpeg"                   # Video processing
+brew "nmap"                     # Network scanner
+brew "telnet"                   # Telnet client
 
 # AI Development Tools
 brew "codex"                    # OpenAI Codex CLI tool
@@ -30,6 +32,9 @@ brew "eza"                      # Better ls with colors
 
 # Mac App Store CLI
 brew "mas"                      # Command line interface for Mac App Store
+
+# macOS Dock Management
+brew "dockutil"                 # Manage Dock items from command line
 
 # Terminal Extensions
 brew "zsh-autosuggestions"      # Tab completion
@@ -50,6 +55,10 @@ cask "claude"                   # Claude Desktop (full version)
 cask "transmit"                 # File transfer client
 cask "hiddenbar"                # Hide menu bar icons
 cask "mark-text"                # Markdown editor
+cask "tunnelblick"              # OpenVPN client
+cask "thunderbird"               # Email client
+cask "balenaetcher"              # OS image flasher
+
 
 
 # Creative & Design

@@ -455,9 +455,59 @@ else
     print_status "Git not found - install via Brewfile first"
 fi
 
-# Step 8: SSH Configuration (optional)
+# Step 8: Dock Configuration (optional)
+if [ -f "dock-setup.sh" ] && [ -f "dock-apps.txt" ]; then
+    print_status "Step 8: Dock Configuration"
+    read -p "🎯 Configure Dock apps and layout? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        print_status "Configuring Dock..."
+        chmod +x dock-setup.sh
+        ./dock-setup.sh
+        if [ $? -eq 0 ]; then
+            print_success "Dock configuration completed"
+        else
+            print_status "Dock setup failed"
+        fi
+    else
+        print_status "Dock setup skipped"
+    fi
+else
+    print_status "Step 8: dock-setup.sh or dock-apps.txt not found - skipping Dock configuration"
+fi
+
+# Step 9: Mount Configuration (optional)
+if [ -f "mount-setup.sh" ] && [ -f "mounts.config" ]; then
+    print_status "Step 9: Network Mount Configuration"
+
+    # Show available mounts from config
+    mount_count=$(grep -c "^\[" mounts.config 2>/dev/null || echo "0")
+    if [ "$mount_count" -gt 0 ]; then
+        print_status "Found $mount_count mount(s) in configuration"
+        read -p "🗂️  Setup network mounts (NFS, SMB, etc.)? (y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            print_status "Running mount setup..."
+            chmod +x mount-setup.sh
+            ./mount-setup.sh
+            if [ $? -eq 0 ]; then
+                print_success "Mount setup completed"
+            else
+                print_status "Mount setup failed or was cancelled"
+            fi
+        else
+            print_status "Mount setup skipped"
+        fi
+    else
+        print_status "No mounts configured in mounts.config - skipping"
+    fi
+else
+    print_status "Step 9: mount-setup.sh or mounts.config not found - skipping mount configuration"
+fi
+
+# Step 10: SSH Configuration (optional)
 if command -v ssh-wunderbar &> /dev/null; then
-    print_status "Step 8: SSH Configuration"
+    print_status "Step 10: SSH Configuration"
     read -p "🔑 Configure SSH keys and servers? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -501,7 +551,7 @@ EOF
         print_status "You can run 'ssh-wunderbar' anytime to setup SSH keys"
     fi
 elif [ -f "ssh/ssh-setup.sh" ]; then
-    print_status "Step 8: SSH Configuration (Legacy)"
+    print_status "Step 10: SSH Configuration (Legacy)"
     read -p "🔑 Configure SSH using legacy script? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -517,7 +567,7 @@ elif [ -f "ssh/ssh-setup.sh" ]; then
         print_status "SSH setup skipped"
     fi
 else
-    print_status "Step 8: SSH setup not available - install ssh-wunderbar first"
+    print_status "Step 10: SSH setup not available - install ssh-wunderbar first"
 fi
 
 # Cleanup
