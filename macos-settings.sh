@@ -174,6 +174,16 @@ defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
 # Disable smart dashes
 defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
 
+# Disable automatic language detection for spell checking (macOS 26 Tahoe)
+defaults write NSGlobalDomain KB_SpellingLanguage -dict KB_SpellingLanguageIsAutomatic -bool false
+
+# Disable WebKit-specific autocorrect (Safari, Mail, Notes on macOS 26 Tahoe)
+defaults write NSGlobalDomain WebAutomaticSpellingCorrectionEnabled -bool false
+
+# Ensure Safari respects the autocorrect/Spell-Check settings (WebKit container)
+defaults write com.apple.Safari WebAutomaticSpellingCorrectionEnabled -bool false
+defaults write com.apple.Safari WebContinuousSpellCheckingEnabled -bool false
+
 # --- Trackpad ---
 
 # Tap to click (Bluetooth trackpad)

@@ -1,0 +1,192 @@
+#!/bin/bash
+
+# FINAL WORKING MOUNT SETUP
+# Launch Daemon approach - NO MORE AUTOFS BULLSHIT
+# Reads mounts.config and creates persistent mounts
+
+set -e
+
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+print_status() { echo -e "${BLUE}[MOUNT]${NC} $1"; }
+print_success() { echo -e "${GREEN}[OK]${NC} $1"; }
+print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+
+echo "🗂️  FINAL Mount Setup (Launch Daemon)"
+
+# Parse config
+parse_config() {
+    rm -f /tmp/mount_* 2>/dev/null || true
+    local current_section=""
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ "$line" =~ ^[[:space:]]*# ]] && continue
+        [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+
+        if [[ "$line" =~ ^\[([^\]]+)\]$ ]]; then
+            current_section="${BASH_REMATCH[1]}"
+        elif [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]] && [[ -n "$current_section" ]]; then
+            local key="${BASH_REMATCH[1]// /}"
+            local value="${BASH_REMATCH[2]}"
+            value="${value#"${value%%[![:space:]]*}"}"
+            value="${value%"${value##*[![:space:]]}"}"
+            echo "$value" > "/tmp/mount_${current_section}_${key}"
+        fi
+    done < "mounts.config"
+}
+
+# Clean up old shit
+cleanup_old_crap() {
+    print_status "Cleaning up old autofs mess..."
+
+    # Stop specific NFS mount daemon only
+    sudo launchctl unload /Library/LaunchDaemons/com.dotfiles.nfsmount.plist 2>/dev/null || true
+
+    # Remove only NFS mount related files
+    sudo rm -f /Library/LaunchDaemons/com.dotfiles.nfsmount.plist 2>/dev/null || true
+    sudo rm -f /usr/local/bin/dotfiles-nfs-mount 2>/dev/null || true
+
+    # Clean autofs mess
+    sudo sed -i '' '/auto_medien/d' /etc/auto_master 2>/dev/null || true
+    sudo sed -i '' '/DOTFILES/d' /etc/auto_master 2>/dev/null || true
+    sudo rm -f /etc/auto_* 2>/dev/null || true
+
+    # Restart autofs to clean state
+    sudo launchctl unload /System/Library/LaunchDaemons/com.apple.autofsd.plist 2>/dev/null || true
+    sudo launchctl load /System/Library/LaunchDaemons/com.apple.autofsd.plist 2>/dev/null || true
+}
+
+# Create working solution
+create_launch_daemon() {
+    print_status "Creating Launch Daemon solution..."
+
+    # Create mount script
+    sudo tee /usr/local/bin/dotfiles-nfs-mount > /dev/null << 'SCRIPT_EOF'
+#!/bin/bash
+# Auto-generated NFS mount script
+
+LOG="/var/log/dotfiles-nfs.log"
+echo "$(date): Starting NFS mount process" >> "$LOG"
+
+# Wait for network
+sleep 10
+
+SCRIPT_EOF
+
+    # Add mounts from config
+    for config_file in /tmp/mount_*_enabled; do
+        if [ -f "$config_file" ] && [ "$(cat "$config_file")" = "true" ]; then
+            local section=$(basename "$config_file" | sed 's/mount_\(.*\)_enabled/\1/')
+            local server=$(cat "/tmp/mount_${section}_server" 2>/dev/null)
+            local path=$(cat "/tmp/mount_${section}_path" 2>/dev/null)
+            local local_path=$(cat "/tmp/mount_${section}_local" 2>/dev/null)
+            local options=$(cat "/tmp/mount_${section}_options" 2>/dev/null)
+
+            if [ -n "$server" ] && [ -n "$path" ] && [ -n "$local_path" ]; then
+                cat >> /tmp/mount_script << MOUNT_EOF
+
+# Mount: $section
+mkdir -p "$local_path"
+if ! mount | grep -q "$local_path"; then
+    if mount -t nfs -o "$options" "$server:$path" "$local_path"; then
+        echo "\$(date): Mounted $server:$path -> $local_path" >> "\$LOG"
+    else
+        echo "\$(date): FAILED to mount $server:$path" >> "\$LOG"
+    fi
+else
+    echo "\$(date): Already mounted: $local_path" >> "\$LOG"
+fi
+MOUNT_EOF
+                print_status "Added: $server:$path -> $local_path"
+            fi
+        fi
+    done
+
+    # Append mount commands to script
+    sudo tee -a /usr/local/bin/dotfiles-nfs-mount < /tmp/mount_script > /dev/null
+    sudo chmod +x /usr/local/bin/dotfiles-nfs-mount
+    rm -f /tmp/mount_script
+
+    # Create Launch Daemon
+    sudo tee /Library/LaunchDaemons/com.dotfiles.nfsmount.plist > /dev/null << 'PLIST_EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.dotfiles.nfsmount</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/dotfiles-nfs-mount</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>NetworkState</key>
+        <true/>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/var/log/dotfiles-nfs.log</string>
+    <key>StandardErrorPath</key>
+    <string>/var/log/dotfiles-nfs.log</string>
+</dict>
+</plist>
+PLIST_EOF
+
+    print_success "Launch Daemon created"
+}
+
+# Load and test
+load_and_test() {
+    print_status "Loading and testing..."
+
+    sudo launchctl load /Library/LaunchDaemons/com.dotfiles.nfsmount.plist
+
+    print_status "Waiting for daemon to mount..."
+    sleep 15
+
+    # Test mounts
+    local success=0
+    local total=0
+
+    for config_file in /tmp/mount_*_enabled; do
+        if [ -f "$config_file" ] && [ "$(cat "$config_file")" = "true" ]; then
+            local section=$(basename "$config_file" | sed 's/mount_\(.*\)_enabled/\1/')
+            local local_path=$(cat "/tmp/mount_${section}_local" 2>/dev/null)
+
+            ((total++))
+            if [ -n "$local_path" ] && ls "$local_path" >/dev/null 2>&1; then
+                print_success "✅ $section works at $local_path"
+                ((success++))
+            else
+                print_error "❌ $section failed at $local_path"
+            fi
+        fi
+    done
+
+    if [ $success -eq $total ] && [ $total -gt 0 ]; then
+        print_success "🎉 ALL MOUNTS WORKING! Persistent across reboots."
+    else
+        print_error "Some mounts failed. Check: tail -f /var/log/dotfiles-nfs.log"
+    fi
+}
+
+# Cleanup temp files
+cleanup() {
+    rm -f /tmp/mount_* 2>/dev/null || true
+}
+trap cleanup EXIT
+
+# Main execution
+print_status "Parsing config..."
+parse_config
+
+cleanup_old_crap
+create_launch_daemon
+load_and_test
+
+print_success "🎉 DONE! Your mounts are now persistent."
