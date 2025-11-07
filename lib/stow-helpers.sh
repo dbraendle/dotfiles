@@ -141,6 +141,9 @@ backup_conflicts() {
             if [[ ! -L "${target}" ]] || [[ "$(readlink "${target}")" != "${source}" ]]; then
                 print_warning "Backing up existing file: ${target}"
                 create_backup "${target}" || return 1
+                # Remove the original file so stow can create symlink
+                rm -rf "${target}"
+                print_debug "Removed ${target} after backup"
             fi
         fi
     done < <(find "${package_dir}" -type f -print0)
