@@ -1,0 +1,64 @@
+# Mounts Configuration Example
+#
+# This file shows example configurations for network mounts.
+# Copy this file to "mounts.config" and customize with your actual mount details.
+#
+# IMPORTANT: Never commit your actual mounts.config to git!
+#            It may contain sensitive network information.
+#
+# Format: mountpoint|server|sharepath|type|options
+#
+# Fields:
+#   mountpoint: Full path where the share will be accessible
+#   server:     IP address or hostname of the server
+#   sharepath:  Path to the share on the server
+#   type:       Either "nfs" or "smb"
+#   options:    Mount options (optional, sensible defaults provided)
+#
+# Mount Point Guidelines:
+#   - Use /System/Volumes/Data/nfs/ for NFS mounts
+#   - Use /System/Volumes/Data/smb/ for SMB mounts
+#   - These are accessible as /nfs/ and /smb/ via firmlinks
+#
+# NFS Mount Options (defaults: resvport,bg,hard,intr):
+#   resvport    - Use reserved port (required by most NFS servers)
+#   bg          - Retry in background if server unavailable
+#   hard        - Keep retrying NFS requests (vs soft)
+#   soft        - Give up after timeout
+#   intr        - Allow interruption of NFS operations
+#   ro          - Mount read-only
+#   rw          - Mount read-write (default)
+#   nfsvers=4   - Force NFSv4
+#
+# SMB Mount Options (defaults: soft):
+#   soft        - Fail after timeout
+#   hard        - Keep retrying indefinitely
+#
+# Security Notes:
+#   - Use private IP addresses (192.168.x.x, 10.x.x.x)
+#   - Or use .local mDNS names for local network
+#   - Never include passwords in this file
+#   - For SMB auth, use Keychain or connect via Finder first
+#   - Use read-only (ro) when write access not needed
+
+# Example: NFS share for media files
+# Replace 192.168.1.100 with your NAS IP
+# Replace /volume1/media with your NFS export path
+/System/Volumes/Data/nfs/media|192.168.1.100|/volume1/media|nfs|resvport,bg,hard,intr
+
+# Example: NFS share for documents (soft mount - won't hang if server down)
+/System/Volumes/Data/nfs/documents|192.168.1.100|/volume1/documents|nfs|resvport,soft,intr
+
+# Example: NFS share read-only for backups
+/System/Volumes/Data/nfs/backups|192.168.1.100|/volume1/backups|nfs|resvport,ro,hard,intr
+
+# Example: SMB/CIFS share (Windows/Samba)
+# Replace 192.168.1.50 with your SMB server IP
+# Replace "shared" with your share name
+/System/Volumes/Data/smb/shared|192.168.1.50|shared|smb|soft
+
+# Example: Using mDNS hostname (.local)
+/System/Volumes/Data/nfs/photos|nas.local|/photos|nfs|resvport,soft,intr
+
+# Example: NFSv4 mount
+/System/Volumes/Data/nfs/data|server.local|/exports/data|nfs|resvport,nfsvers=4,hard,intr

@@ -1,0 +1,22 @@
+{
+  "name": "mounts",
+  "description": "Network mounts configuration (NFS/SMB via autofs)",
+  "category": "system",
+  "version": "1.0.0",
+  "dependencies": [],
+  "conflicts": [],
+  "stow_packages": [],
+  "scripts": {
+    "install": "modules/mounts/install.sh",
+    "update": "modules/mounts/update.sh",
+    "uninstall": "modules/mounts/uninstall.sh"
+  },
+  "profiles": ["desktop"],
+  "platforms": ["macos"],
+  "requires": {
+    "commands": ["automount"]
+  },
+  "optional": true,
+  "enabled_by_default": false,
+  "tags": ["mounts", "nfs", "smb", "autofs", "network"]
+}
