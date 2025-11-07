@@ -1,189 +1,372 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Dotfiles V2 - Manual Update Script
+# Triggers on-demand updates of dotfiles, packages, and system components
+#
+# Usage:
+#   ./update.sh              # Interactive update
+#   ./update.sh --yes        # Auto-accept all prompts
+#   ./update.sh --force      # Force restow even if up-to-date
+#   ./update.sh --help       # Show help
 
-# System Updates Script
-# Usage: ./update.sh
+set -euo pipefail
 
-set -e
+# Script directory
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Colors
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+# Source libraries
+source "${SCRIPT_DIR}/lib/logging.sh"
+source "${SCRIPT_DIR}/lib/utils.sh"
+source "${SCRIPT_DIR}/lib/stow-helpers.sh"
 
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+# Configuration
+readonly VERSION="2.0.0"
+AUTO_YES=false
+FORCE_RESTOW=false
+
+# ============================================================================
+# Helper Functions
+# ============================================================================
+
+show_help() {
+    cat << EOF
+Dotfiles V2 - Manual Update Script
+
+Usage:
+  ./update.sh [OPTIONS]
+
+Options:
+  --yes, -y           Auto-accept all prompts
+  --force, -f         Force restow all modules
+  --help, -h          Show this help message
+  --version, -v       Show version
+
+Description:
+  Manually triggers updates for:
+    • Dotfiles (git pull from GitHub)
+    • Stow packages (restow all active modules)
+    • Homebrew packages (brew upgrade)
+    • npm global packages (npm update -g)
+    • Oh My Zsh (git pull)
+    • System settings (re-apply profile settings)
+
+Examples:
+  ./update.sh                    # Interactive update
+  ./update.sh --yes              # Non-interactive
+  ./update.sh --force            # Force restow even if unchanged
+
+Note:
+  For automatic nightly updates, use Ansible on your Homelab server.
+  This script is for on-demand manual updates.
+
+EOF
 }
 
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
+# ============================================================================
+# Update Functions
+# ============================================================================
 
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
+update_dotfiles() {
+    print_section "Updating Dotfiles from GitHub"
 
-echo "=========================================="
-echo "🔄 System Updates Check"
-echo "=========================================="
-
-# Check what needs updating first
-
-# Xcode Command Line Tools
-print_status "Checking Xcode Command Line Tools..."
-if xcode-select -p &> /dev/null; then
-    # Check if there's an update available
-    if softwareupdate -l 2>/dev/null | grep -q "Command Line Tools"; then
-        print_warning "Xcode Command Line Tools update available"
-        read -p "🔄 Update Xcode Command Line Tools? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            print_status "Updating Xcode Command Line Tools..."
-            sudo xcode-select --install
-            print_success "Xcode Command Line Tools update started"
-        else
-            print_status "Xcode Command Line Tools update skipped"
-        fi
-    else
-        print_success "Xcode Command Line Tools are up to date"
+    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+        print_warning "Not a git repository, skipping git pull"
+        return 0
     fi
-else
-    print_status "Xcode Command Line Tools not installed - run install.sh first"
-fi
 
-# Update ssh-wunderbar if installed
-if command -v ssh-wunderbar &> /dev/null; then
-    print_status "Checking ssh-wunderbar for updates..."
-    current_location=$(which ssh-wunderbar)
-    
-    # Download latest version to temp file for comparison
-    temp_file="/tmp/ssh-wunderbar-latest"
-    if curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$temp_file" 2>/dev/null; then
-        if ! cmp -s "$current_location" "$temp_file"; then
-            print_status "🔄 New ssh-wunderbar version available!"
-            read -p "Update ssh-wunderbar? (y/n): " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                print_status "Updating ssh-wunderbar..."
-                if [[ "$current_location" == "/usr/local/bin/ssh-wunderbar" ]]; then
-                    sudo cp "$temp_file" "$current_location"
-                    sudo chmod +x "$current_location"
-                else
-                    cp "$temp_file" "$current_location"
-                    chmod +x "$current_location"
-                fi
-                print_success "ssh-wunderbar updated to latest version"
+    local current_branch
+    current_branch=$(git branch --show-current)
+
+    print_status "Current branch: ${current_branch}"
+    print_status "Pulling latest changes..."
+
+    if git pull --rebase --autostash; then
+        print_success "Dotfiles updated successfully"
+    else
+        print_error "Failed to pull latest changes"
+        print_status "Resolve conflicts and try again"
+        return 1
+    fi
+}
+
+restow_modules() {
+    print_section "Re-symlinking Dotfiles"
+
+    local modules_file="${HOME}/.dotfiles-modules"
+
+    if [[ ! -f "$modules_file" ]]; then
+        print_warning "No active modules found"
+        print_status "Run ./install.sh to set up modules"
+        return 0
+    fi
+
+    local module_count
+    module_count=$(wc -l < "$modules_file" | tr -d ' ')
+
+    print_status "Re-symlinking $module_count active module(s)..."
+
+    local count=0
+    while IFS= read -r module; do
+        [[ -z "$module" ]] && continue
+        ((count++))
+
+        print_status "[$count/$module_count] Restowing: $module"
+
+        if restow_package "$module"; then
+            print_success "$module restowed"
+        else
+            print_warning "Failed to restow $module (may not have stow packages)"
+        fi
+    done < "$modules_file"
+
+    print_success "Dotfiles re-symlinked"
+}
+
+update_homebrew() {
+    print_section "Updating Homebrew Packages"
+
+    if ! command_exists "brew"; then
+        print_warning "Homebrew not installed, skipping"
+        return 0
+    fi
+
+    print_status "Updating Homebrew..."
+    if brew update; then
+        print_success "Homebrew updated"
+    else
+        print_error "Failed to update Homebrew"
+        return 1
+    fi
+
+    print_status "Upgrading packages..."
+    if brew upgrade; then
+        print_success "Packages upgraded"
+    else
+        print_warning "Some packages failed to upgrade"
+    fi
+
+    print_status "Cleaning up..."
+    brew cleanup || true
+    brew autoremove || true
+
+    print_success "Homebrew update complete"
+}
+
+update_npm() {
+    print_section "Updating NPM Global Packages"
+
+    if ! command_exists "npm"; then
+        print_warning "npm not installed, skipping"
+        return 0
+    fi
+
+    print_status "Updating global packages..."
+
+    if npm update -g; then
+        print_success "npm packages updated"
+    else
+        print_warning "Some npm packages failed to update"
+    fi
+}
+
+update_oh_my_zsh() {
+    print_section "Updating Oh My Zsh"
+
+    local omz_dir="${HOME}/.oh-my-zsh"
+
+    if [[ ! -d "$omz_dir" ]]; then
+        print_warning "Oh My Zsh not installed, skipping"
+        return 0
+    fi
+
+    print_status "Updating Oh My Zsh..."
+
+    if (cd "$omz_dir" && git pull --rebase --autostash); then
+        print_success "Oh My Zsh updated"
+    else
+        print_warning "Failed to update Oh My Zsh"
+    fi
+}
+
+reapply_system_settings() {
+    print_section "Re-applying System Settings"
+
+    local profile_file="${HOME}/.dotfiles-profile"
+
+    if [[ ! -f "$profile_file" ]]; then
+        print_warning "No profile set, skipping system settings"
+        return 0
+    fi
+
+    local profile
+    profile=$(cat "$profile_file")
+
+    if [[ "$AUTO_YES" == true ]] || confirm "Re-apply system settings for $profile profile?"; then
+        local system_script="${SCRIPT_DIR}/modules/system/install.sh"
+
+        if [[ -f "$system_script" ]]; then
+            print_status "Running system module..."
+            if "$system_script" --profile "$profile"; then
+                print_success "System settings re-applied"
             else
-                print_status "ssh-wunderbar update skipped"
+                print_warning "Failed to re-apply system settings"
             fi
         else
-            print_success "ssh-wunderbar is already up to date"
+            print_warning "System module not found, skipping"
         fi
-        rm -f "$temp_file"
     else
-        print_warning "Could not check for ssh-wunderbar updates"
+        print_status "Skipping system settings"
     fi
-else
-    print_status "ssh-wunderbar not installed - skipping update check"
-fi
+}
 
-echo ""
-print_status "Checking for available updates..."
+update_modules() {
+    print_section "Updating Active Modules"
 
-# macOS Updates
-print_status "Checking macOS updates..."
-softwareupdate -l 2>/dev/null | grep -v "No new software available" || print_success "macOS is up to date"
+    local modules_file="${HOME}/.dotfiles-modules"
 
-# Homebrew Updates
-print_status "Checking Homebrew updates..."
-brew update >/dev/null
-outdated=$(brew outdated)
+    if [[ ! -f "$modules_file" ]]; then
+        print_warning "No active modules found"
+        return 0
+    fi
 
-if [ -n "$outdated" ]; then
+    local module_count
+    module_count=$(wc -l < "$modules_file" | tr -d ' ')
+
+    print_status "Checking $module_count module(s) for updates..."
+
+    local count=0
+    while IFS= read -r module; do
+        [[ -z "$module" ]] && continue
+        ((count++))
+
+        local update_script="${SCRIPT_DIR}/modules/${module}/update.sh"
+
+        if [[ -f "$update_script" ]]; then
+            print_status "[$count/$module_count] Updating: $module"
+
+            if "$update_script"; then
+                print_success "$module updated"
+            else
+                print_warning "Failed to update $module"
+            fi
+        fi
+    done < "$modules_file"
+
+    print_success "Module updates complete"
+}
+
+# ============================================================================
+# Main
+# ============================================================================
+
+main() {
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --yes|-y)
+                AUTO_YES=true
+                shift
+                ;;
+            --force|-f)
+                FORCE_RESTOW=true
+                shift
+                ;;
+            --help|-h)
+                show_help
+                exit 0
+                ;;
+            --version|-v)
+                echo "Dotfiles V2 Update Script v${VERSION}"
+                exit 0
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                echo "Run './update.sh --help' for usage"
+                exit 1
+                ;;
+        esac
+    done
+
+    # Header
+    print_section "Dotfiles V2 - Manual Update"
     echo ""
-    print_warning "Outdated packages:"
-    echo "$outdated"
+
+    # Confirm
+    if [[ "$AUTO_YES" == false ]]; then
+        echo "This will update:"
+        echo "  • Dotfiles (git pull)"
+        echo "  • Stow packages (restow)"
+        echo "  • Homebrew packages"
+        echo "  • NPM global packages"
+        echo "  • Oh My Zsh"
+        echo "  • Active modules"
+        echo "  • System settings (optional)"
+        echo ""
+
+        if ! confirm "Proceed with update?"; then
+            print_status "Update cancelled"
+            exit 0
+        fi
+
+        echo ""
+    fi
+
+    # Create log file
+    local log_dir="${SCRIPT_DIR}/logs"
+    mkdir -p "$log_dir"
+    export LOG_FILE="${log_dir}/update-$(date +%Y-%m-%d-%H%M%S).log"
+
+    print_status "Logging to: $LOG_FILE"
     echo ""
-    
-    read -p "🔄 Update all Homebrew packages? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Updating Homebrew packages..."
-        brew upgrade
-        print_success "Homebrew packages updated"
-    else
-        print_status "Homebrew updates skipped"
-    fi
-else
-    print_success "All Homebrew packages are up to date"
-fi
 
-# Oh My Zsh updates
-if [ -d "$HOME/.oh-my-zsh" ]; then
-    print_status "Checking Oh My Zsh updates..."
-    cd "$HOME/.oh-my-zsh"
-    
-    # Check if there are updates available
-    git fetch origin >/dev/null 2>&1
-    LOCAL=$(git rev-parse HEAD)
-    REMOTE=$(git rev-parse origin/master)
-    
-    if [ "$LOCAL" != "$REMOTE" ]; then
-        echo ""
-        print_warning "Oh My Zsh updates available"
-        
-        read -p "🔄 Update Oh My Zsh? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            print_status "Updating Oh My Zsh..."
-            git pull origin master >/dev/null 2>&1
-            print_success "Oh My Zsh updated"
-        else
-            print_status "Oh My Zsh updates skipped"
-        fi
-    else
-        print_success "Oh My Zsh is up to date"
-    fi
-    
-    cd - >/dev/null
-else
-    print_status "Oh My Zsh not installed - skipping update check"
-fi
+    # Run updates
+    local start_time
+    start_time=$(date +%s)
 
-# npm global packages
-if command -v npm >/dev/null 2>&1; then
-    print_status "Checking npm global packages..."
-    npm_outdated=$(npm outdated -g 2>/dev/null || echo "")
-    
-    if [ -n "$npm_outdated" ]; then
-        echo ""
-        print_warning "Outdated npm global packages:"
-        echo "$npm_outdated"
-        echo ""
-        
-        read -p "🔄 Update npm global packages? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            print_status "Updating npm global packages..."
-            npm update -g
-            print_success "npm global packages updated"
-        else
-            print_status "npm updates skipped"
-        fi
-    else
-        print_success "All npm global packages are up to date"
-    fi
-fi
+    update_dotfiles || true
+    echo ""
 
-# Cleanup
-print_status "Cleaning up..."
-brew cleanup
-if command -v npm >/dev/null 2>&1; then
-    npm cache clean --force >/dev/null 2>&1 || true
-fi
-print_success "Cleanup completed"
+    restow_modules || true
+    echo ""
 
-echo ""
-echo "=========================================="
-print_success "✅ Update check completed!"
-echo "=========================================="
+    update_homebrew || true
+    echo ""
+
+    update_npm || true
+    echo ""
+
+    update_oh_my_zsh || true
+    echo ""
+
+    update_modules || true
+    echo ""
+
+    reapply_system_settings || true
+    echo ""
+
+    # Summary
+    local end_time
+    end_time=$(date +%s)
+    local duration=$((end_time - start_time))
+
+    print_section "Update Complete"
+    echo ""
+    echo "✓ Dotfiles updated and re-symlinked"
+    echo "✓ Packages updated (Homebrew, npm)"
+    echo "✓ Oh My Zsh updated"
+    echo "✓ Active modules updated"
+    echo ""
+    echo "Duration: ${duration}s"
+    echo "Log: $LOG_FILE"
+    echo ""
+
+    print_success "Next Steps:"
+    echo "  1. Restart Terminal: source ~/.zshrc"
+    echo "  2. Verify: ./manage.sh modules status"
+    echo "  3. Check for issues: tail $LOG_FILE"
+    echo ""
+}
+
+# Run main
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

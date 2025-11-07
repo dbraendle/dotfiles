@@ -1,593 +1,870 @@
-#!/bin/bash
-
-# Mac Development Environment Setup
-# Modular setup script
+#!/usr/bin/env bash
+#######################################
+# Dotfiles V2 - Main Installation Script
+#
+# A professional, modular dotfiles installation system for macOS
+#
+# Features:
+#   - Automatic profile detection (laptop vs desktop)
+#   - Modular architecture with dependency resolution
+#   - Interactive menu-driven installation
+#   - Command-line argument support
+#   - Comprehensive error handling and logging
+#   - GNU Stow integration for dotfile management
 #
 # Usage:
-#   chmod +x install.sh
-#   ./install.sh
+#   ./install.sh [OPTIONS]
+#
+# Options:
+#   --profile desktop|laptop    Force specific profile
+#   --modules core,dock,...     Install specific modules
+#   --yes                       Auto-accept all prompts
+#   --help                      Show this help message
+#
+# Examples:
+#   ./install.sh                           # Interactive installation
+#   ./install.sh --profile laptop --yes    # Non-interactive laptop setup
+#   ./install.sh --modules core,terminal   # Install specific modules
+#
+# Author: Daniel Brändle
+# Version: 2.0.0
+#######################################
 
-set -e
+set -euo pipefail
 
-# Colors
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+#######################################
+# Source library files
+#######################################
 
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+# Get the absolute path to the dotfiles directory
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export DOTFILES_DIR
+
+# Source required libraries
+# shellcheck source=lib/logging.sh
+source "${DOTFILES_DIR}/lib/logging.sh"
+# shellcheck source=lib/utils.sh
+source "${DOTFILES_DIR}/lib/utils.sh"
+# shellcheck source=lib/module-validator.sh
+source "${DOTFILES_DIR}/lib/module-validator.sh"
+# shellcheck source=lib/stow-helpers.sh
+source "${DOTFILES_DIR}/lib/stow-helpers.sh"
+
+#######################################
+# Global Variables
+#######################################
+
+# Profile configuration
+DETECTED_PROFILE=""
+SELECTED_PROFILE=""
+PROFILE_FILE="${HOME}/.dotfiles-profile"
+
+# Module configuration
+SELECTED_MODULES=()
+MODULES_FILE="${HOME}/.dotfiles-modules"
+CORE_MODULES=("system" "homebrew" "terminal" "git")
+
+# Installation options
+AUTO_YES=false
+INTERACTIVE=true
+
+# Temporary storage for user input
+GIT_USER_NAME=""
+GIT_USER_EMAIL=""
+SCANNER_HOSTNAME=""
+
+# Create log file with timestamp
+LOG_DIR="${DOTFILES_DIR}/logs"
+mkdir -p "${LOG_DIR}"
+LOG_FILE="${LOG_DIR}/install-$(date +%Y-%m-%d-%H%M%S).log"
+export LOG_FILE
+
+#######################################
+# Helper Functions
+#######################################
+
+#######################################
+# Display usage information
+# Outputs:
+#   Help text to stdout
+#######################################
+show_help() {
+    cat << EOF
+Dotfiles V2 - Main Installation Script
+
+Usage:
+  ./install.sh [OPTIONS]
+
+Options:
+  --profile PROFILE       Force specific profile (desktop|laptop)
+  --modules MODULES       Comma-separated list of modules to install
+  --yes                   Auto-accept all prompts (non-interactive mode)
+  --help                  Show this help message
+
+Examples:
+  ./install.sh                              Interactive installation
+  ./install.sh --profile laptop --yes       Non-interactive laptop setup
+  ./install.sh --modules system,terminal    Install specific modules only
+
+Core Modules (always available):
+  system      - macOS system settings and preferences
+  homebrew    - Homebrew package manager and packages
+  terminal    - Zsh, Oh My Zsh, and terminal configuration
+  git         - Git configuration and aliases
+
+For more information, see: ${DOTFILES_DIR}/README.md
+EOF
 }
 
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-echo "=========================================="
-echo "🛠️  Mac Development Setup"
-echo "=========================================="
-
-# Step 1: Xcode Command Line Tools
-print_status "Step 1: Xcode Command Line Tools"
-if ! xcode-select -p &> /dev/null; then
-    print_status "Installing Xcode Command Line Tools..."
-    xcode-select --install
-    
-    print_status "Waiting for installation to complete..."
-    echo "→ Please click 'Install' in the popup window"
-    echo "→ Press Ctrl+C to cancel if installation fails"
-    
-    # Wait with timeout
-    timeout=0
-    max_timeout=1800  # 30 minutes maximum
-    
-    while ! xcode-select -p &> /dev/null; do
-        sleep 30
-        timeout=$((timeout + 30))
-        
-        if [ $timeout -ge $max_timeout ]; then
-            echo ""
-            echo "❌ Installation timeout after 30 minutes"
-            echo "Please install manually: xcode-select --install"
-            exit 1
-        fi
-        
-        echo "→ Installation in progress... (${timeout}s elapsed)"
+#######################################
+# Parse command-line arguments
+# Arguments:
+#   $@ - All command-line arguments
+#######################################
+parse_arguments() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --profile)
+                if [[ -z "${2:-}" ]] || [[ "$2" =~ ^-- ]]; then
+                    print_error "Missing value for --profile"
+                    exit 1
+                fi
+                SELECTED_PROFILE="$2"
+                if [[ ! "$SELECTED_PROFILE" =~ ^(desktop|laptop)$ ]]; then
+                    print_error "Invalid profile: $SELECTED_PROFILE (must be: desktop, laptop)"
+                    exit 1
+                fi
+                shift 2
+                ;;
+            --profile=*)
+                SELECTED_PROFILE="${1#*=}"
+                if [[ ! "$SELECTED_PROFILE" =~ ^(desktop|laptop)$ ]]; then
+                    print_error "Invalid profile: $SELECTED_PROFILE (must be: desktop, laptop)"
+                    exit 1
+                fi
+                shift
+                ;;
+            --modules)
+                if [[ -z "${2:-}" ]] || [[ "$2" =~ ^-- ]]; then
+                    print_error "Missing value for --modules"
+                    exit 1
+                fi
+                IFS=',' read -ra SELECTED_MODULES <<< "$2"
+                INTERACTIVE=false
+                shift 2
+                ;;
+            --modules=*)
+                IFS=',' read -ra SELECTED_MODULES <<< "${1#*=}"
+                INTERACTIVE=false
+                shift
+                ;;
+            --yes|-y)
+                AUTO_YES=true
+                shift
+                ;;
+            --help|-h)
+                show_help
+                exit 0
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                show_help
+                exit 1
+                ;;
+        esac
     done
-    
-    print_success "Xcode Command Line Tools installed"
-else
-    print_success "Xcode Command Line Tools already installed"
-fi
+}
 
-# Accept Xcode license (required for many developer tools)
-if command -v xcodebuild >/dev/null 2>&1; then
-    # Check if license is already accepted
-    if ! xcodebuild -license check 2>/dev/null; then
-        print_status "Xcode license needs to be accepted..."
-        echo "→ Please enter your password to accept Xcode license:"
-        sudo xcodebuild -license accept
-        print_success "Xcode license accepted"
+#######################################
+# Detect hardware profile
+# Sets DETECTED_PROFILE to "laptop" or "desktop"
+#######################################
+detect_profile() {
+    print_status "Detecting hardware profile..."
+
+    if is_laptop; then
+        DETECTED_PROFILE="laptop"
+        print_success "Detected: MacBook (Laptop)"
     else
-        print_success "Xcode license already accepted"
+        DETECTED_PROFILE="desktop"
+        print_success "Detected: Desktop Mac (Mac mini/iMac/Mac Studio/Mac Pro)"
     fi
-fi
 
-# Step 2: macOS System Settings (optional)
-if [ -f "macos-settings.sh" ]; then
-    print_status "Step 2: macOS System Settings"
-    read -p "🔧 Apply macOS system settings? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Applying macOS settings..."
-        source macos-settings.sh
-        print_success "macOS settings applied"
-    else
-        print_status "macOS settings skipped"
+    # Use detected profile if not overridden
+    if [[ -z "$SELECTED_PROFILE" ]]; then
+        SELECTED_PROFILE="$DETECTED_PROFILE"
     fi
-else
-    print_status "Step 2: macOS settings file not found - skipping"
-fi
 
-# Step 3: Homebrew Package Manager
-print_status "Step 3: Homebrew Package Manager"
+    # Save profile for future use
+    echo "$SELECTED_PROFILE" > "$PROFILE_FILE"
+    print_debug "Profile saved to: $PROFILE_FILE"
+}
 
-# Check if Homebrew binary exists and load PATH
-if [ -f "/opt/homebrew/bin/brew" ]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [ -f "/usr/local/bin/brew" ]; then
-    eval "$(/usr/local/bin/brew shellenv)"
-fi
+#######################################
+# Check for required prerequisites
+# Returns:
+#   0 if all prerequisites met, 1 otherwise
+#######################################
+check_prerequisites() {
+    print_section "Checking Prerequisites"
 
-# Now check if brew command is available
-if command -v brew &> /dev/null; then
-    print_success "Homebrew already installed"
-    
-    # Check if updates are available
-    print_status "Checking for Homebrew updates..."
-    if brew outdated --quiet 2>/dev/null | head -1 | grep -q .; then
-        print_status "Updates available - updating Homebrew..."
-        brew update
-    else
-        print_status "Homebrew is up to date"
+    local missing_prereqs=0
+
+    # Check if running on macOS
+    if ! is_macos; then
+        print_error "This script is designed for macOS only"
+        print_error "Detected OS: $(uname -s)"
+        return 1
     fi
-else
-    print_status "Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    
-    # Add Homebrew to PATH
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-    
-    print_success "Homebrew installed"
-fi
+    print_success "Running on macOS $(get_macos_version)"
 
-# Step 4: Apps Installation (optional)
-if [ -f "Brewfile" ]; then
-    print_status "Step 4: Apps Installation" 
-    read -p "📦 Install and update apps from Brewfile? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Installing apps from Brewfile..."
-        if ! brew bundle install; then
-            print_status "Some packages failed to install. Attempting to fix Node.js symlink issue..."
-            if brew list | grep -q "^node$"; then
-                print_status "Fixing Node.js symlink conflicts..."
-                brew link --overwrite node
-                print_status "Retrying Brewfile installation..."
-                brew bundle install
-            fi
-        fi
-        print_status "Updating existing Homebrew packages..."
-        brew upgrade
-        print_success "Apps installed and updated"
-    else
-        print_status "Apps installation skipped"
-    fi
-else
-    print_status "Step 4: Brewfile not found - skipping app installation"
-fi
+    # Check for Xcode Command Line Tools
+    print_status "Checking for Xcode Command Line Tools..."
+    if ! xcode-select -p &>/dev/null; then
+        print_warning "Xcode Command Line Tools not installed"
 
-# Step 4.5: SSH Management Tool
-install_ssh_wunderbar() {
-    # Finde das aktuelle dotfiles Verzeichnis
-    local dotfiles_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local dotfiles_name=$(basename "$dotfiles_dir")
-    
-    print_status "Installing ssh-wunderbar..."
-    echo "📦 Where should ssh-wunderbar be installed?"
-    echo "  1) /usr/local/bin (recommended - system-wide)"
-    echo "  2) ~/.local/bin (user-only)"
-    echo "  3) $dotfiles_dir/bin (with your $dotfiles_name)"
-    
-    read -p "Choice (1-3, default: 1): " install_choice
-    install_choice=${install_choice:-1}
-    
-    case $install_choice in
-        1) 
-            install_dir="/usr/local/bin"
-            # Check if we need sudo for /usr/local/bin
-            if [ ! -w "$install_dir" ]; then
-                print_status "Need sudo access for $install_dir"
-                sudo mkdir -p "$install_dir"
-            fi
-            ;;
-        2) 
-            install_dir="$HOME/.local/bin"
-            mkdir -p "$install_dir"
-            # Add to PATH if not already there
-            if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
-                echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-                print_status "Added ~/.local/bin to PATH in ~/.zshrc"
-            fi
-            ;;
-        3) 
-            install_dir="$dotfiles_dir/bin"
-            mkdir -p "$install_dir"
-            # Add to PATH if not already there
-            if [[ ":$PATH:" != *":$install_dir:"* ]]; then
-                echo "export PATH=\"$install_dir:\$PATH\"" >> ~/.zshrc
-                print_status "Added $install_dir to PATH in ~/.zshrc"
-            fi
-            ;;
-        *)
-            print_status "Invalid choice, defaulting to /usr/local/bin"
-            install_dir="/usr/local/bin"
-            if [ ! -w "$install_dir" ]; then
-                print_status "Need sudo access for $install_dir"
-                sudo mkdir -p "$install_dir"
-            fi
-            ;;
-    esac
-    
-    # Create directory if not exists (with sudo if needed)
-    if [ ! -d "$install_dir" ]; then
-        if [[ "$install_dir" == "/usr/local/bin" ]]; then
-            sudo mkdir -p "$install_dir"
-        else
-            mkdir -p "$install_dir"
-        fi
-    fi
-    
-    # Download ssh-wunderbar
-    if command -v gh &> /dev/null; then
-        print_status "🐙 Downloading via GitHub CLI..."
-        # Clean up any existing temp directory
-        rm -rf /tmp/ssh-wunderbar
-        if gh repo clone dbraendle/ssh-wunderbar /tmp/ssh-wunderbar; then
-            if [[ "$install_dir" == "/usr/local/bin" ]]; then
-                sudo cp /tmp/ssh-wunderbar/ssh-wunderbar "$install_dir/"
-                sudo cp /tmp/ssh-wunderbar/test.sh "$install_dir/"
+        if [[ "$AUTO_YES" == "false" ]]; then
+            if confirm "Install Xcode Command Line Tools now?" "y"; then
+                print_status "Installing Xcode Command Line Tools..."
+                xcode-select --install
+
+                print_status "Waiting for installation to complete..."
+                print_status "Please click 'Install' in the popup window"
+
+                # Wait for installation with timeout
+                local timeout=0
+                local max_timeout=1800  # 30 minutes
+
+                while ! xcode-select -p &>/dev/null; do
+                    sleep 10
+                    timeout=$((timeout + 10))
+
+                    if [[ $timeout -ge $max_timeout ]]; then
+                        print_error "Installation timeout after 30 minutes"
+                        print_error "Please install manually: xcode-select --install"
+                        return 1
+                    fi
+
+                    if [[ $((timeout % 60)) -eq 0 ]]; then
+                        print_status "Waiting... (${timeout}s elapsed)"
+                    fi
+                done
+
+                print_success "Xcode Command Line Tools installed"
             else
-                cp /tmp/ssh-wunderbar/ssh-wunderbar "$install_dir/"
-                cp /tmp/ssh-wunderbar/test.sh "$install_dir/"
+                print_error "Xcode Command Line Tools are required"
+                return 1
             fi
-            rm -rf /tmp/ssh-wunderbar
         else
-            print_status "GitHub CLI download failed, falling back to direct download..."
-            if [[ "$install_dir" == "/usr/local/bin" ]]; then
-                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar | sudo tee "$install_dir/ssh-wunderbar" > /dev/null
-                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh | sudo tee "$install_dir/test.sh" > /dev/null
-            else
-                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$install_dir/ssh-wunderbar"
-                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
-            fi
+            print_error "Xcode Command Line Tools required for installation"
+            print_error "Install with: xcode-select --install"
+            return 1
         fi
     else
-        print_status "📥 Downloading directly from GitHub..."
-        if [[ "$install_dir" == "/usr/local/bin" ]]; then
-            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar | sudo tee "$install_dir/ssh-wunderbar" > /dev/null
-            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh | sudo tee "$install_dir/test.sh" > /dev/null
-        else
-            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$install_dir/ssh-wunderbar"
-            curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
+        print_success "Xcode Command Line Tools installed"
+    fi
+
+    # Accept Xcode license if needed
+    if command_exists xcodebuild; then
+        if ! xcodebuild -license check 2>/dev/null; then
+            print_warning "Xcode license needs to be accepted"
+            if [[ "$AUTO_YES" == "true" ]] || confirm "Accept Xcode license?"; then
+                print_status "Accepting Xcode license (may require password)..."
+                sudo xcodebuild -license accept
+                print_success "Xcode license accepted"
+            fi
         fi
     fi
-    
-    # Set permissions
-    if [[ "$install_dir" == "/usr/local/bin" ]]; then
-        sudo chmod +x "$install_dir/ssh-wunderbar"
-        sudo chmod +x "$install_dir/test.sh"
-    else
-        chmod +x "$install_dir/ssh-wunderbar"
-        chmod +x "$install_dir/test.sh"
+
+    # Check for jq (needed for module validation)
+    if ! command_exists jq; then
+        print_warning "jq is not installed (needed for module management)"
+        print_status "jq will be installed with Homebrew"
     fi
-    
-    print_success "✅ ssh-wunderbar installed to $install_dir"
-    print_status "Usage: ssh-wunderbar --help"
-    
+
     return 0
 }
 
-print_status "Step 4.5: SSH Management Tool"
-if command -v ssh-wunderbar &> /dev/null; then
-    current_location=$(which ssh-wunderbar)
-    print_status "ssh-wunderbar already installed at: $current_location"
-    read -p "🔄 Update to latest version? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Updating ssh-wunderbar to latest version..."
-        
-        # Update at current location without asking where to install
-        install_dir=$(dirname "$current_location")
-        
-        # Clean up any existing temp directory
-        rm -rf /tmp/ssh-wunderbar
-        
-        # Download latest version
-        if command -v gh &> /dev/null; then
-            print_status "🐙 Downloading via GitHub CLI..."
-            if gh repo clone dbraendle/ssh-wunderbar /tmp/ssh-wunderbar; then
-                if [[ "$current_location" == "/usr/local/bin/ssh-wunderbar" ]]; then
-                    sudo cp /tmp/ssh-wunderbar/ssh-wunderbar "$current_location"
-                    sudo cp /tmp/ssh-wunderbar/test.sh "$install_dir/test.sh"
-                    sudo chmod +x "$current_location"
-                    sudo chmod +x "$install_dir/test.sh"
-                else
-                    cp /tmp/ssh-wunderbar/ssh-wunderbar "$current_location"
-                    cp /tmp/ssh-wunderbar/test.sh "$install_dir/test.sh"
-                    chmod +x "$current_location"
-                    chmod +x "$install_dir/test.sh"
-                fi
-                rm -rf /tmp/ssh-wunderbar
-            else
-                print_status "GitHub CLI download failed, falling back to direct download..."
-                if [[ "$current_location" == "/usr/local/bin/ssh-wunderbar" ]]; then
-                    curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar | sudo tee "$current_location" > /dev/null
-                    curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh | sudo tee "$install_dir/test.sh" > /dev/null
-                    sudo chmod +x "$current_location"
-                    sudo chmod +x "$install_dir/test.sh"
-                else
-                    curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$current_location"
-                    curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
-                    chmod +x "$current_location"
-                    chmod +x "$install_dir/test.sh"
-                fi
-            fi
-        else
-            print_status "📥 Downloading directly from GitHub..."
-            if [[ "$current_location" == "/usr/local/bin/ssh-wunderbar" ]]; then
-                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar | sudo tee "$current_location" > /dev/null
-                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh | sudo tee "$install_dir/test.sh" > /dev/null
-                sudo chmod +x "$current_location"
-                sudo chmod +x "$install_dir/test.sh"
-            else
-                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/ssh-wunderbar > "$current_location"
-                curl -fsSL https://raw.githubusercontent.com/dbraendle/ssh-wunderbar/main/test.sh > "$install_dir/test.sh"
-                chmod +x "$current_location"
-                chmod +x "$install_dir/test.sh"
-            fi
-        fi
-        
-        print_success "✅ ssh-wunderbar updated at $current_location"
-    else
-        print_status "ssh-wunderbar update skipped"
-    fi
-else
-    read -p "🔑 Install ssh-wunderbar for SSH key management? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        install_ssh_wunderbar
-    else
-        print_status "ssh-wunderbar installation skipped"
-    fi
-fi
+#######################################
+# Get list of all available modules
+# Outputs:
+#   List of module names, one per line
+#######################################
+get_available_modules() {
+    local modules_dir="${DOTFILES_DIR}/modules"
 
-# Step 5: NPM Global Packages (optional)
-print_status "Step 5: NPM Global Packages"
-if command -v npm >/dev/null 2>&1; then
-    read -p "📦 Install/update NPM global packages? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        # Run npm-install.sh if it exists, otherwise do basic npm update
-        if [ -f "npm-install.sh" ]; then
-            print_status "Running NPM packages installation script..."
-            chmod +x npm-install.sh
-            ./npm-install.sh
-            print_success "NPM packages installed via script"
-        fi
-        
-        # Also check for global package updates
-        print_status "Checking npm global packages..."
-        npm_outdated=$(npm outdated -g 2>/dev/null || echo "")
-        
-        if [ -n "$npm_outdated" ]; then
-            print_status "Updating npm global packages..."
-            npm update -g
-            print_success "npm global packages updated"
-        else
-            print_success "All npm global packages are up to date"
-        fi
-    else
-        print_status "NPM packages installation skipped"
+    if [[ ! -d "$modules_dir" ]]; then
+        return 0
     fi
-else
-    print_status "Step 5: npm not installed - will be available after Node.js from Brewfile"
-fi
 
-# Step 6: Terminal Setup (optional)
-print_status "Step 6: Terminal Setup"
-read -p "🖥️  Install Oh My Zsh and terminal configuration? (y/n): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    # Install/Update Oh My Zsh
-    if [ ! -d "$HOME/.oh-my-zsh" ]; then
-        print_status "Installing Oh My Zsh..."
-        sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-        print_success "Oh My Zsh installed"
-    else
-        print_status "Updating Oh My Zsh..."
-        cd "$HOME/.oh-my-zsh"
-        git pull origin master >/dev/null 2>&1
-        cd - >/dev/null
-        print_success "Oh My Zsh updated"
-    fi
-    
-    # Install .zshrc configuration
-    if [ -f ".zshrc" ]; then
-        print_status "Installing .zshrc configuration..."
-        cp .zshrc "$HOME/.zshrc"
-        print_success "Terminal configuration installed"
-        print_status "Restart terminal or run: source ~/.zshrc"
-    else
-        print_status ".zshrc template not found - skipping terminal configuration"
-    fi
-    
-else
-    print_status "Terminal setup skipped"
-fi
-
-# Step 7: Git Configuration (optional)
-print_status "Step 7: Git Configuration"
-if command -v git &> /dev/null; then
-    current_name=$(git config --global user.name 2>/dev/null || echo "")
-    current_email=$(git config --global user.email 2>/dev/null || echo "")
-    
-    if [ -n "$current_name" ] && [ -n "$current_email" ]; then
-        print_success "Git already configured: $current_name <$current_email>"
-        read -p "🔧 Reconfigure Git settings and install templates? (y/n): " -n 1 -r
-    else
-        read -p "🔧 Configure Git user settings? (y/n): " -n 1 -r
-    fi
-    
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo ""
-        if [ -n "$current_email" ]; then
-            read -p "📧 Git email address ($current_email): " git_email
-            git_email=${git_email:-$current_email}
-        else
-            read -p "📧 Git email address: " git_email
-        fi
-        
-        if [ -n "$current_name" ]; then
-            read -p "👤 Git username ($current_name): " git_username
-            git_username=${git_username:-$current_name}
-        else
-            read -p "👤 Git username: " git_username
-        fi
-        
-        if [ -n "$git_email" ] && [ -n "$git_username" ]; then
-            # Install .gitconfig template if available
-            if [ -f ".gitconfig" ]; then
-                print_status "Installing .gitconfig template with aliases and settings..."
-                # Replace placeholders and copy
-                sed "s/PLACEHOLDER_NAME/$git_username/g; s/PLACEHOLDER_EMAIL/$git_email/g" .gitconfig > "$HOME/.gitconfig"
-                print_success "Git configuration installed with aliases and settings"
-            else
-                # Fallback: basic git config
-                git config --global user.name "$git_username"
-                git config --global user.email "$git_email"
-                git config --global init.defaultBranch main
-                git config --global core.editor "code --wait"
-                git config --global pull.rebase false
-                git config --global push.default simple
-                print_success "Basic Git configuration set"
-            fi
-            
-            print_success "Git configured: $git_username <$git_email>"
-        else
-            print_status "Git configuration skipped (empty values)"
-        fi
-    else
-        print_status "Git configuration skipped"
-    fi
-else
-    print_status "Git not found - install via Brewfile first"
-fi
-
-# Step 8: Dock Configuration (optional)
-if [ -f "dock-setup.sh" ] && [ -f "dock-apps.txt" ]; then
-    print_status "Step 8: Dock Configuration"
-    read -p "🎯 Configure Dock apps and layout? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Configuring Dock..."
-        chmod +x dock-setup.sh
-        ./dock-setup.sh
-        if [ $? -eq 0 ]; then
-            print_success "Dock configuration completed"
-        else
-            print_status "Dock setup failed"
-        fi
-    else
-        print_status "Dock setup skipped"
-    fi
-else
-    print_status "Step 8: dock-setup.sh or dock-apps.txt not found - skipping Dock configuration"
-fi
-
-# Step 9: Mount Configuration (optional)
-if [ -f "mount-setup.sh" ] && [ -f "mounts.config" ]; then
-    print_status "Step 9: Network Mount Configuration"
-
-    # Show available mounts from config
-    mount_count=$(grep -c "^\[" mounts.config 2>/dev/null || echo "0")
-    if [ "$mount_count" -gt 0 ]; then
-        print_status "Found $mount_count mount(s) in configuration"
-        read -p "🗂️  Setup network mounts (NFS, SMB, etc.)? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            print_status "Running mount setup..."
-            chmod +x mount-setup.sh
-            ./mount-setup.sh
-            if [ $? -eq 0 ]; then
-                print_success "Mount setup completed"
-            else
-                print_status "Mount setup failed or was cancelled"
-            fi
-        else
-            print_status "Mount setup skipped"
-        fi
-    else
-        print_status "No mounts configured in mounts.config - skipping"
-    fi
-else
-    print_status "Step 9: mount-setup.sh or mounts.config not found - skipping mount configuration"
-fi
-
-# Step 10: SSH Configuration (optional)
-if command -v ssh-wunderbar &> /dev/null; then
-    print_status "Step 10: SSH Configuration"
-    read -p "🔑 Configure SSH keys and servers? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo ""
-        print_status "🚀 Opening ssh-wunderbar interactive setup..."
-        print_status "Configure your SSH keys and servers. When finished, the setup will continue."
-        echo ""
-        echo "Press Enter to continue..."
-        read
-        
-        # Run ssh-wunderbar interactively - user returns to install.sh when done
-        # Create ~/.ssh-services.json if it doesn't exist
-        if [ ! -f "$HOME/.ssh-services.json" ]; then
-            print_status "Creating SSH services configuration..."
-            cat > "$HOME/.ssh-services.json" << 'EOF'
-{
-  "_comment": "SSH Services Configuration",
-  "_description": "Personal SSH server and service definitions",
-  "_managed_by": "ssh-wunderbar - https://github.com/dbraendle/ssh-wunderbar",
-  "_location": "This file should be located at: ~/.ssh-services.json",
-  
-  "version": "1.0",
-  "services": {},
-  "settings": {
-    "default_key_type": "ed25519",
-    "auto_backup_config": true,
-    "cleanup_old_keys": false,
-    "key_rotation_days": 365
-  }
+    find "$modules_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort
 }
+
+#######################################
+# Display interactive menu
+# Sets SELECTED_MODULES array based on user selection
+#######################################
+show_interactive_menu() {
+    clear
+
+    cat << 'EOF'
+╔════════════════════════════════════════════╗
+║      Dotfiles V2 Installation             ║
+╚════════════════════════════════════════════╝
 EOF
-        fi
-        
-        ssh-wunderbar
-        
-        echo ""
-        print_success "🔑 SSH configuration completed!"
-        print_status "Continuing with setup..."
+
+    echo ""
+    if [[ "$DETECTED_PROFILE" == "$SELECTED_PROFILE" ]]; then
+        echo "Detected: $(echo "$DETECTED_PROFILE" | sed 's/./\U&/') Profile"
     else
-        print_status "SSH configuration skipped"
-        print_status "You can run 'ssh-wunderbar' anytime to setup SSH keys"
+        echo "Profile: $(echo "$SELECTED_PROFILE" | sed 's/./\U&/') (Override)"
     fi
-elif [ -f "ssh/ssh-setup.sh" ]; then
-    print_status "Step 10: SSH Configuration (Legacy)"
-    read -p "🔑 Configure SSH using legacy script? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Running legacy SSH setup..."
-        chmod +x ssh/ssh-setup.sh
-        ./ssh/ssh-setup.sh
-        if [ $? -eq 0 ]; then
-            print_success "SSH setup completed"
+    echo ""
+
+    cat << EOF
+Installation Options:
+  [1] Full Installation (Recommended)
+      ✓ System Settings (${SELECTED_PROFILE} Profile)
+      ✓ Homebrew + All Packages
+      ✓ Terminal (Zsh + Oh My Zsh)
+      ✓ Git Configuration
+      ✓ All Optional Modules
+
+  [2] Minimal Installation (Core Only)
+      ✓ System Settings
+      ✓ Homebrew + Essential Packages
+      ✓ Terminal
+      ✓ Git Configuration
+
+  [3] Custom - Select Modules Interactively
+
+  [4] Change Profile (Switch to $(if [[ "$SELECTED_PROFILE" == "laptop" ]]; then echo "Desktop"; else echo "Laptop"; fi))
+
+  [Q] Quit
+
+EOF
+
+    read -rp "Select option [1-4, Q]: " choice
+
+    case "$choice" in
+        1)
+            # Full installation - all modules
+            print_status "Full installation selected"
+            mapfile -t SELECTED_MODULES < <(get_available_modules)
+            ;;
+        2)
+            # Minimal installation - core modules only
+            print_status "Minimal installation selected"
+            SELECTED_MODULES=("${CORE_MODULES[@]}")
+            ;;
+        3)
+            # Custom module selection
+            select_modules_interactively
+            ;;
+        4)
+            # Toggle profile
+            if [[ "$SELECTED_PROFILE" == "laptop" ]]; then
+                SELECTED_PROFILE="desktop"
+            else
+                SELECTED_PROFILE="laptop"
+            fi
+            echo "$SELECTED_PROFILE" > "$PROFILE_FILE"
+            print_success "Profile changed to: $SELECTED_PROFILE"
+            sleep 1
+            show_interactive_menu  # Show menu again
+            return
+            ;;
+        [Qq])
+            print_status "Installation cancelled"
+            exit 0
+            ;;
+        *)
+            print_error "Invalid option: $choice"
+            sleep 2
+            show_interactive_menu  # Show menu again
+            return
+            ;;
+    esac
+}
+
+#######################################
+# Interactive module selection
+# Sets SELECTED_MODULES array based on user choices
+#######################################
+select_modules_interactively() {
+    clear
+    print_section "Custom Module Selection"
+
+    echo "Core modules (always installed):"
+    for module in "${CORE_MODULES[@]}"; do
+        echo "  ✓ $module"
+    done
+    echo ""
+
+    # Start with core modules
+    SELECTED_MODULES=("${CORE_MODULES[@]}")
+
+    # Get optional modules
+    local optional_modules=()
+    mapfile -t all_modules < <(get_available_modules)
+
+    for module in "${all_modules[@]}"; do
+        # Skip core modules
+        if [[ " ${CORE_MODULES[*]} " =~ " ${module} " ]]; then
+            continue
+        fi
+        optional_modules+=("$module")
+    done
+
+    if [[ ${#optional_modules[@]} -eq 0 ]]; then
+        print_warning "No optional modules available"
+        return
+    fi
+
+    echo "Optional modules (select which to install):"
+    echo ""
+
+    for module in "${optional_modules[@]}"; do
+        local description=""
+        local module_file="${DOTFILES_DIR}/modules/${module}/module.json"
+
+        if [[ -f "$module_file" ]] && command_exists jq; then
+            description=$(jq -r '.description // "No description"' "$module_file" 2>/dev/null || echo "")
+        fi
+
+        if [[ -z "$description" ]]; then
+            description="No description available"
+        fi
+
+        echo -ne "  Install ${BOLD}${module}${NC}? ($description) "
+        if [[ "$AUTO_YES" == "true" ]] || confirm "" "n"; then
+            SELECTED_MODULES+=("$module")
+            print_success "  → $module will be installed"
         else
-            print_status "SSH setup skipped or failed"
+            print_status "  → $module skipped"
         fi
-    else
-        print_status "SSH setup skipped"
+        echo ""
+    done
+}
+
+#######################################
+# Gather user input for configuration
+#######################################
+gather_user_input() {
+    if [[ "$AUTO_YES" == "true" ]]; then
+        return 0
     fi
-else
-    print_status "Step 10: SSH setup not available - install ssh-wunderbar first"
-fi
 
-# Cleanup
-print_status "Cleaning up caches..."
-brew cleanup
-if command -v npm >/dev/null 2>&1; then
-    npm cache clean --force >/dev/null 2>&1 || true
-fi
-print_success "Cleanup completed"
+    print_section "Configuration"
 
-echo ""
-echo "=========================================="
-print_success "✅ Setup completed successfully!"
-echo "=========================================="
-print_status "Next steps:"
-echo "  • Restart terminal to apply new configuration"
-if command -v ssh-wunderbar &> /dev/null; then
-    echo "  • Use 'ssh-wunderbar --help' to manage SSH keys"
-    echo "  • Add servers with: ssh-wunderbar --add-service myserver host user port"
-fi
-echo "  • Open VS Code and sign in to GitHub for settings sync"
-echo "  • Customize Finder sidebar manually if needed"
-echo "  • Enjoy your new Mac setup! 🎉"
+    # Git configuration
+    if [[ " ${SELECTED_MODULES[*]} " =~ " git " ]]; then
+        echo ""
+        print_status "Git Configuration"
+
+        # Get current git config if exists
+        local current_name
+        local current_email
+        current_name=$(git config --global user.name 2>/dev/null || echo "")
+        current_email=$(git config --global user.email 2>/dev/null || echo "")
+
+        if [[ -n "$current_name" ]]; then
+            read -rp "Git username [$current_name]: " GIT_USER_NAME
+            GIT_USER_NAME="${GIT_USER_NAME:-$current_name}"
+        else
+            read -rp "Git username: " GIT_USER_NAME
+        fi
+
+        if [[ -n "$current_email" ]]; then
+            read -rp "Git email [$current_email]: " GIT_USER_EMAIL
+            GIT_USER_EMAIL="${GIT_USER_EMAIL:-$current_email}"
+        else
+            read -rp "Git email: " GIT_USER_EMAIL
+        fi
+    fi
+
+    # Scanner hostname (if scanner module is selected)
+    if [[ " ${SELECTED_MODULES[*]} " =~ " scanner " ]]; then
+        echo ""
+        print_status "Scanner Configuration"
+        read -rp "Scanner server hostname (optional, press Enter to skip): " SCANNER_HOSTNAME
+    fi
+
+    echo ""
+}
+
+#######################################
+# Validate module dependencies
+# Arguments:
+#   $1 - Module name
+# Returns:
+#   0 if dependencies satisfied, 1 otherwise
+#######################################
+validate_dependencies() {
+    local module="$1"
+    local module_file="${DOTFILES_DIR}/modules/${module}/module.json"
+
+    if [[ ! -f "$module_file" ]]; then
+        print_warning "Module file not found: $module_file"
+        return 0  # Skip validation if module.json doesn't exist
+    fi
+
+    # Check if jq is available
+    if ! command_exists jq; then
+        print_debug "jq not available, skipping dependency validation for $module"
+        return 0
+    fi
+
+    # Get dependencies
+    local dependencies
+    dependencies=$(jq -r '.dependencies[]? // empty' "$module_file" 2>/dev/null || echo "")
+
+    if [[ -z "$dependencies" ]]; then
+        return 0  # No dependencies
+    fi
+
+    # Check each dependency
+    local missing_deps=()
+    while IFS= read -r dep; do
+        if [[ ! " ${SELECTED_MODULES[*]} " =~ " ${dep} " ]]; then
+            missing_deps+=("$dep")
+        fi
+    done <<< "$dependencies"
+
+    if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        print_error "Module '$module' requires: ${missing_deps[*]}"
+        return 1
+    fi
+
+    return 0
+}
+
+#######################################
+# Check if module supports current profile
+# Arguments:
+#   $1 - Module name
+# Returns:
+#   0 if supported, 1 otherwise
+#######################################
+check_profile_support() {
+    local module="$1"
+    local module_file="${DOTFILES_DIR}/modules/${module}/module.json"
+
+    if [[ ! -f "$module_file" ]]; then
+        return 0  # Assume supported if no module.json
+    fi
+
+    if ! command_exists jq; then
+        return 0  # Assume supported if jq not available
+    fi
+
+    # Get supported profiles
+    local profiles
+    profiles=$(jq -r '.profiles[]? // empty' "$module_file" 2>/dev/null || echo "")
+
+    # If no profiles specified, assume both are supported
+    if [[ -z "$profiles" ]]; then
+        return 0
+    fi
+
+    # Check if current profile is supported
+    if echo "$profiles" | grep -q "^${SELECTED_PROFILE}$"; then
+        return 0
+    else
+        print_warning "Module '$module' does not support profile: $SELECTED_PROFILE"
+        return 1
+    fi
+}
+
+#######################################
+# Install a single module
+# Arguments:
+#   $1 - Module name
+# Returns:
+#   0 if successful, 1 otherwise
+#######################################
+install_module() {
+    local module="$1"
+    local module_dir="${DOTFILES_DIR}/modules/${module}"
+    local install_script="${module_dir}/install.sh"
+
+    print_subsection "Installing Module: $module"
+
+    # Check if module exists
+    if [[ ! -d "$module_dir" ]]; then
+        print_error "Module directory not found: $module_dir"
+        return 1
+    fi
+
+    # Validate dependencies
+    if ! validate_dependencies "$module"; then
+        print_error "Dependency check failed for: $module"
+        return 1
+    fi
+
+    # Check profile support
+    if ! check_profile_support "$module"; then
+        print_warning "Skipping $module (not supported on $SELECTED_PROFILE)"
+        return 0
+    fi
+
+    # Check if install script exists
+    if [[ ! -f "$install_script" ]]; then
+        print_warning "Install script not found: $install_script"
+        print_warning "Skipping module: $module"
+        return 0
+    fi
+
+    # Make install script executable
+    chmod +x "$install_script"
+
+    # Export configuration variables for module scripts
+    export DOTFILES_DIR
+    export SELECTED_PROFILE
+    export GIT_USER_NAME
+    export GIT_USER_EMAIL
+    export SCANNER_HOSTNAME
+
+    # Run install script
+    print_status "Running: $install_script"
+
+    if "$install_script"; then
+        print_success "Module '$module' installed successfully"
+
+        # Add to modules file
+        if [[ -f "$MODULES_FILE" ]]; then
+            if ! grep -q "^${module}$" "$MODULES_FILE" 2>/dev/null; then
+                echo "$module" >> "$MODULES_FILE"
+            fi
+        else
+            echo "$module" > "$MODULES_FILE"
+        fi
+
+        return 0
+    else
+        print_error "Module '$module' installation failed"
+        return 1
+    fi
+}
+
+#######################################
+# Install all selected modules
+# Returns:
+#   0 if all successful, 1 if any failed
+#######################################
+install_modules() {
+    print_section "Installing Modules"
+
+    local total=${#SELECTED_MODULES[@]}
+    local current=0
+    local failed=0
+    local succeeded=0
+    local skipped=0
+
+    print_status "Modules to install: ${SELECTED_MODULES[*]}"
+    print_status "Profile: $SELECTED_PROFILE"
+    echo ""
+
+    for module in "${SELECTED_MODULES[@]}"; do
+        current=$((current + 1))
+        print_status "[$current/$total] Processing: $module"
+
+        if install_module "$module"; then
+            succeeded=$((succeeded + 1))
+        else
+            failed=$((failed + 1))
+
+            # Ask user if they want to continue
+            if [[ "$AUTO_YES" == "false" ]] && [[ " ${CORE_MODULES[*]} " =~ " ${module} " ]]; then
+                print_error "Core module '$module' failed to install"
+                if ! confirm "Continue with remaining modules?" "n"; then
+                    print_error "Installation aborted"
+                    return 1
+                fi
+            fi
+        fi
+        echo ""
+    done
+
+    # Summary
+    print_section "Installation Summary"
+    echo "Total modules:      $total"
+    echo "Succeeded:          $succeeded"
+    echo "Failed:             $failed"
+    echo ""
+
+    if [[ $failed -gt 0 ]]; then
+        print_warning "Some modules failed to install"
+        print_status "Check log file for details: $LOG_FILE"
+        return 1
+    else
+        print_success "All modules installed successfully"
+        return 0
+    fi
+}
+
+#######################################
+# Display final summary
+#######################################
+show_summary() {
+    clear
+
+    cat << 'EOF'
+╔════════════════════════════════════════════╗
+║      Installation Complete!                ║
+╚════════════════════════════════════════════╝
+EOF
+
+    echo ""
+    print_success "Dotfiles V2 installation completed successfully!"
+    echo ""
+
+    # Show active profile
+    echo "Active Profile:"
+    echo "  • $SELECTED_PROFILE"
+    echo ""
+
+    # Show installed modules
+    echo "Installed Modules:"
+    if [[ -f "$MODULES_FILE" ]]; then
+        while IFS= read -r module; do
+            [[ -z "$module" ]] && continue
+            echo "  • $module"
+        done < "$MODULES_FILE"
+    else
+        echo "  (none recorded)"
+    fi
+    echo ""
+
+    # Next steps
+    print_section "Next Steps"
+    cat << EOF
+  1. Restart Terminal or run: source ~/.zshrc
+  2. Review module status: ./manage.sh modules status
+  3. Customize settings in: $DOTFILES_DIR/config/
+  4. Check logs for details: $LOG_FILE
+
+EOF
+
+    # Module-specific next steps
+    if [[ " ${SELECTED_MODULES[*]} " =~ " terminal " ]]; then
+        echo "  Terminal Configuration:"
+        echo "    - Oh My Zsh installed at: ~/.oh-my-zsh"
+        echo "    - Configuration file: ~/.zshrc"
+        echo ""
+    fi
+
+    if [[ " ${SELECTED_MODULES[*]} " =~ " git " ]]; then
+        echo "  Git Configuration:"
+        echo "    - User: $GIT_USER_NAME <$GIT_USER_EMAIL>"
+        echo "    - Config file: ~/.gitconfig"
+        echo ""
+    fi
+
+    print_success "Installation log saved to: $LOG_FILE"
+    echo ""
+}
+
+#######################################
+# Confirm installation
+# Returns:
+#   0 if user confirms, 1 otherwise
+#######################################
+confirm_installation() {
+    if [[ "$AUTO_YES" == "true" ]]; then
+        return 0
+    fi
+
+    echo ""
+    print_section "Installation Confirmation"
+
+    echo "Profile:  $SELECTED_PROFILE"
+    echo "Modules:  ${SELECTED_MODULES[*]}"
+    echo "Log file: $LOG_FILE"
+    echo ""
+
+    if confirm "Proceed with installation?" "y"; then
+        return 0
+    else
+        print_status "Installation cancelled by user"
+        return 1
+    fi
+}
+
+#######################################
+# Main installation flow
+#######################################
+main() {
+    # Parse command-line arguments first (handles --help before any output)
+    parse_arguments "$@"
+
+    # Print header
+    clear
+    cat << 'EOF'
+╔════════════════════════════════════════════╗
+║      Dotfiles V2 Installer                ║
+║      Professional macOS Setup             ║
+╚════════════════════════════════════════════╝
+
+EOF
+
+    print_status "Starting Dotfiles V2 installation..."
+    print_status "Log file: $LOG_FILE"
+    echo ""
+
+    # Check prerequisites
+    if ! check_prerequisites; then
+        print_error "Prerequisites check failed"
+        print_error "Please resolve issues and try again"
+        exit 1
+    fi
+
+    # Detect hardware profile
+    detect_profile
+
+    # Interactive menu or use provided modules
+    if [[ "$INTERACTIVE" == "true" ]] && [[ ${#SELECTED_MODULES[@]} -eq 0 ]]; then
+        show_interactive_menu
+    fi
+
+    # Validate that we have modules to install
+    if [[ ${#SELECTED_MODULES[@]} -eq 0 ]]; then
+        print_error "No modules selected for installation"
+        print_status "Use --modules option or run interactively"
+        exit 1
+    fi
+
+    # Gather user input
+    gather_user_input
+
+    # Confirm installation
+    if ! confirm_installation; then
+        exit 0
+    fi
+
+    echo ""
+    print_status "Starting installation process..."
+    echo ""
+
+    # Install modules
+    if install_modules; then
+        # Save profile
+        echo "$SELECTED_PROFILE" > "$PROFILE_FILE"
+        print_debug "Profile saved to: $PROFILE_FILE"
+
+        # Show summary
+        show_summary
+        exit 0
+    else
+        print_error "Installation completed with errors"
+        print_status "Check log file: $LOG_FILE"
+        exit 1
+    fi
+}
+
+#######################################
+# Entry Point
+#######################################
+
+# Run main function with all arguments
+main "$@"
