@@ -37,12 +37,21 @@ ensure_stow_installed() {
 # Returns:
 #   0 if found, 1 otherwise
 # Outputs:
-#   Writes dotfiles directory path to stdout
+#   Writes dotfiles directory path to stdout (points to config/ subdirectory)
 #######################################
 get_stow_dir() {
     local dotfiles_dir
     dotfiles_dir="$(get_dotfiles_dir)" || return 1
-    echo "${dotfiles_dir}"
+
+    # Stow packages are in the config/ subdirectory
+    local stow_packages_dir="${dotfiles_dir}/config"
+
+    if [[ ! -d "${stow_packages_dir}" ]]; then
+        print_error "Stow packages directory not found: ${stow_packages_dir}"
+        return 1
+    fi
+
+    echo "${stow_packages_dir}"
 }
 
 #######################################
