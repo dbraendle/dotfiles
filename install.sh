@@ -317,7 +317,7 @@ EOF
     fi
 
     echo ""
-    read -rp "Select profile [1-2] (default: detected): " profile_choice
+    read -erp "Select profile [1-2] (default: detected): " profile_choice
 
     case "$profile_choice" in
         1)
@@ -370,7 +370,7 @@ Installation Options:
 
 EOF
 
-    read -rp "Select option [1-3, Q]: " choice
+    read -erp "Select option [1-3, Q]: " choice
 
     case "$choice" in
         1)
@@ -488,17 +488,17 @@ gather_user_input() {
         current_email=$(git config --global user.email 2>/dev/null || echo "")
 
         if [[ -n "$current_name" ]]; then
-            read -rp "Git username [$current_name]: " GIT_USER_NAME
+            read -erp "Git username [$current_name]: " GIT_USER_NAME
             GIT_USER_NAME="${GIT_USER_NAME:-$current_name}"
         else
-            read -rp "Git username: " GIT_USER_NAME
+            read -erp "Git username: " GIT_USER_NAME
         fi
 
         if [[ -n "$current_email" ]]; then
-            read -rp "Git email [$current_email]: " GIT_USER_EMAIL
+            read -erp "Git email [$current_email]: " GIT_USER_EMAIL
             GIT_USER_EMAIL="${GIT_USER_EMAIL:-$current_email}"
         else
-            read -rp "Git email: " GIT_USER_EMAIL
+            read -erp "Git email: " GIT_USER_EMAIL
         fi
     fi
 
@@ -506,7 +506,7 @@ gather_user_input() {
     if [[ " ${SELECTED_MODULES[*]} " =~ " scanner " ]]; then
         echo ""
         print_status "Scanner Configuration"
-        read -rp "Scanner server hostname (optional, press Enter to skip): " SCANNER_HOSTNAME
+        read -erp "Scanner server hostname (optional, press Enter to skip): " SCANNER_HOSTNAME
     fi
 
     echo ""

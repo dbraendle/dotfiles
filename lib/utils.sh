@@ -86,7 +86,7 @@ confirm() {
 
     # Ask the question
     echo -ne "${YELLOW}${question} ${prompt}${NC} "
-    read -r answer
+    read -er answer
 
     # Handle empty answer (use default)
     if [[ -z "${answer}" ]]; then
@@ -363,8 +363,8 @@ prompt_input() {
         printf "%s%s:%s " "${YELLOW:-}" "${prompt_text}" "${NC:-}" >&2
     fi
 
-    # Read user input
-    read -r user_input
+    # Read user input (with readline editing support for arrow keys)
+    read -er user_input
 
     # Use default if input is empty
     if [[ -z "${user_input}" && -n "${default_value}" ]]; then
