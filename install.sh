@@ -799,13 +799,10 @@ main() {
     cat << 'EOF'
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
-║     ____        _    __ _ _             __     ____           ║
-║    |  _ \  ___ | |_ / _(_) | ___  ___  \ \   / /_ )          ║
-║    | | | |/ _ \| __| |_| | |/ _ \/ __|  \ \ / / / /          ║
-║    | |_| | (_) | |_|  _| | |  __/\__ \   \ V / |_|           ║
-║    |____/ \___/ \__|_| |_|_|\___||___/    \_/  (_)           ║
+║                         Dennis'                               ║
+║                        Dotfiles                               ║
 ║                                                               ║
-║   Professional macOS Setup & Configuration System            ║
+║             Professional macOS Setup & Configuration          ║
 ║                                                               ║
 ║   Version: 2.0.0                                              ║
 ║   Author:  Dennis Brändle                                     ║
