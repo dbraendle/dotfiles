@@ -651,7 +651,13 @@ install_module() {
     # Run install script
     print_status "Running: $install_script"
 
-    if "$install_script"; then
+    # Pass profile argument to system module
+    local module_args=()
+    if [[ "$module" == "system" ]]; then
+        module_args=("--profile" "$SELECTED_PROFILE")
+    fi
+
+    if "$install_script" "${module_args[@]}"; then
         print_success "Module '$module' installed successfully"
 
         # Add to modules file

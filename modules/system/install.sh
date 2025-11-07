@@ -2,7 +2,7 @@
 # System Module - Main Installation Script
 # Configures macOS system settings with profile awareness
 
-set -euo pipefail
+set -e
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
