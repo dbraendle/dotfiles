@@ -87,7 +87,7 @@ main() {
         IFS=':' read -r package description <<< "$package_info"
 
         print_status "Installing: ${package}"
-        print_info "  ${description}"
+        echo "  ${description}"
 
         if npm install -g "${package}@latest" >/dev/null 2>&1; then
             print_success "  ✓ ${package} installed"
@@ -109,13 +109,13 @@ main() {
             print_error "  - ${pkg}"
         done
         echo ""
-        print_info "You can retry failed packages manually with:"
-        print_info "  npm install -g <package-name>"
+        print_status "You can retry failed packages manually with:"
+        print_status "  npm install -g <package-name>"
         return 1
     fi
 
     print_success "NPM module installation completed"
-    print_info "Installed packages can be updated with: npm update -g"
+    print_status "Installed packages can be updated with: npm update -g"
 }
 
 # Run main function
