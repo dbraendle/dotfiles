@@ -130,7 +130,7 @@ fi
 
 # Welcome message
 echo "🚀 Terminal ready - $(date '+%H:%M')"
-if command -v git &> /dev/null && [ -n "$(git config --global user.name 2>/dev/null)" ]; then
-    echo "👤 Git: $(git config --global user.name)"
+if command -v git &> /dev/null && [ -n "$(git config user.name 2>/dev/null)" ]; then
+    echo "👤 Git: $(git config user.name)"
 fi
 

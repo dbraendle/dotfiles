@@ -496,12 +496,12 @@ gather_user_input() {
             current_email=$(git config --file="${HOME}/.gitconfig.local" user.email 2>/dev/null || echo "")
         fi
 
-        # Fallback to global config if .local doesn't have values
+        # Fallback to git config (reads all sources including includes)
         if [[ -z "$current_name" ]]; then
-            current_name=$(git config --global user.name 2>/dev/null || echo "")
+            current_name=$(git config user.name 2>/dev/null || echo "")
         fi
         if [[ -z "$current_email" ]]; then
-            current_email=$(git config --global user.email 2>/dev/null || echo "")
+            current_email=$(git config user.email 2>/dev/null || echo "")
         fi
 
         if [[ -n "$current_name" ]]; then

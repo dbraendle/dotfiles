@@ -19,9 +19,9 @@ else
     exit 1
 fi
 
-# Verify
-CURRENT_NAME=$(git config --global user.name 2>/dev/null || echo "")
-CURRENT_EMAIL=$(git config --global user.email 2>/dev/null || echo "")
+# Verify - read from all sources including includes
+CURRENT_NAME=$(git config user.name 2>/dev/null || echo "")
+CURRENT_EMAIL=$(git config user.email 2>/dev/null || echo "")
 
 if [[ -n "$CURRENT_NAME" ]] && [[ -n "$CURRENT_EMAIL" ]]; then
     print_success "Git configured for: $CURRENT_NAME <$CURRENT_EMAIL>"

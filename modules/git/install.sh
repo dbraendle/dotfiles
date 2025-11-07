@@ -31,8 +31,9 @@ main() {
     print_success "Git is installed: $(git --version)"
 
     # Use values from environment (set by main install.sh) or current git config
-    local git_user_name="${GIT_USER_NAME:-$(git config --global user.name 2>/dev/null)}"
-    local git_user_email="${GIT_USER_EMAIL:-$(git config --global user.email 2>/dev/null)}"
+    # Note: Using 'git config' without --global to read from all sources including includes
+    local git_user_name="${GIT_USER_NAME:-$(git config user.name 2>/dev/null)}"
+    local git_user_email="${GIT_USER_EMAIL:-$(git config user.email 2>/dev/null)}"
 
     # Validate we have values
     if [[ -z "${git_user_name}" ]]; then
