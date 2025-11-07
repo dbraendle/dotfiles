@@ -3,14 +3,14 @@
 # Provides functions to manage dotfiles packages using GNU Stow
 # Usage: source this file after sourcing utils.sh
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get the directory where this library is located (use unique var name to avoid conflicts)
+STOW_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source dependencies
 # shellcheck source=./logging.sh
-source "${SCRIPT_DIR}/logging.sh"
+source "${STOW_LIB_DIR}/logging.sh"
 # shellcheck source=./utils.sh
-source "${SCRIPT_DIR}/utils.sh"
+source "${STOW_LIB_DIR}/utils.sh"
 
 # File to track stowed modules
 DOTFILES_MODULES="${HOME}/.dotfiles-modules"

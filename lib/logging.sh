@@ -3,12 +3,12 @@
 # Provides consistent logging output with colors and file logging
 # Usage: source this file after sourcing colors.sh
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get the directory where this library is located (use unique var name to avoid conflicts)
+LOGGING_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source colors.sh from the same directory
 # shellcheck source=./colors.sh
-source "${SCRIPT_DIR}/colors.sh"
+source "${LOGGING_LIB_DIR}/colors.sh"
 
 # Default log directory and file
 LOG_DIR="${HOME}/dotfiles/logs"

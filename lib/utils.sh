@@ -3,12 +3,12 @@
 # Provides system detection, file operations, and helper functions
 # Usage: source this file after sourcing logging.sh
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get the directory where this library is located (use unique var name to avoid conflicts)
+UTILS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source logging.sh from the same directory
 # shellcheck source=./logging.sh
-source "${SCRIPT_DIR}/logging.sh"
+source "${UTILS_LIB_DIR}/logging.sh"
 
 #######################################
 # Check if running on macOS
