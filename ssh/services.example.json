@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "services": {
+    "github": {
+      "type": "git",
+      "hostname": "github.com",
+      "user": "git",
+      "port": 22,
+      "description": "GitHub SSH authentication",
+      "readonly": true,
+      "test_command": "ssh -T git@github.com"
+    },
+    "example-server": {
+      "type": "server",
+      "hostname": "192.168.1.100",
+      "user": "your-username",
+      "port": 22,
+      "description": "Example server - replace with your own",
+      "test_command": "uptime"
+    },
+    "example-vps": {
+      "type": "server",
+      "hostname": "your-vps.example.com",
+      "user": "root",
+      "port": 22,
+      "description": "Example VPS - replace with your own",
+      "test_command": "uptime"
+    }
+  },
+  "settings": {
+    "default_key_type": "ed25519",
+    "auto_backup_config": true,
+    "cleanup_old_keys": false,
+    "key_rotation_days": 365
+  }
+}

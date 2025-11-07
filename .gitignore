@@ -1,0 +1,123 @@
+# Claude Code Files
+.claude/
+
+# macOS System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary Files
+*.tmp
+*.temp
+*~
+.#*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime Data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Editor Files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# Backup Files
+*.backup
+*.bak
+*.old
+
+# Test Files
+test-output/
+coverage/
+
+# Personal/Local Configuration
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Installer Downloads (if any)
+downloads/
+installers/
+
+# Cache Directories
+.cache/
+.npm/
+.yarn/
+
+# OS Generated Files
+Icon?
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Network Trash Folder
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# ==========================================
+# V2 Security: Secrets and Sensitive Data
+# ==========================================
+
+# SSH Keys and Configurations
+ssh/services.json           # Contains real server IPs/users
+services.json               # Services configuration (may contain IPs)
+ssh/id_*                    # Private SSH keys
+ssh/*.key                   # Any key files
+ssh/*.pem                   # Certificate files
+.ssh-services.json          # SSH services config
+
+# Network Mount Configurations
+mounts.config               # May contain internal IPs/paths
+*.mount                     # Mount configurations
+
+# Environment and Secrets
+*.secret                    # Any files marked as secret
+*.vault                     # Ansible vault files
+.bitwarden-session          # Bitwarden CLI session tokens
+
+# Local Configuration Overrides
+*.local                     # Local-only configs
+*.private                   # Private configs
+
+# Installation Logs (contain system info)
+logs/*.log                  # All log files
+logs/install-*.log          # Installation logs
+*.install.log               # Any install logs
+
+# Backups (may contain sensitive data)
+backups/*                   # All backups
+!backups/.gitkeep           # Keep directory
+*.backup                    # Backup files
+
+# Ansible Sensitive Files
+ansible/inventory/hosts.yml # Contains real IPs
+ansible/group_vars/*.yml    # May contain secrets
+ansible/host_vars/*.yml     # May contain secrets
+ansible/**/*vault*          # Any vault files
+
+# Module State Files
+.dotfiles-modules           # Active modules (per-machine)
+.dotfiles-profile           # Current profile (per-machine)
+.dotfiles-update.log        # Update history

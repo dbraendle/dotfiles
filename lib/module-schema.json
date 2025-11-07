@@ -1,0 +1,253 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/dbraendle/dotfiles/module-schema.json",
+  "title": "Dotfiles V2 Module Schema",
+  "description": "Schema for dotfiles module definitions",
+  "type": "object",
+  "required": ["name", "description", "category", "scripts"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique module identifier (kebab-case)",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "examples": ["system", "homebrew", "terminal", "git", "iterm2"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description of what this module does",
+      "minLength": 10,
+      "maxLength": 200,
+      "examples": ["macOS system settings and preferences"]
+    },
+    "category": {
+      "type": "string",
+      "description": "Module category",
+      "enum": ["core", "optional", "experimental"],
+      "examples": ["core", "optional"]
+    },
+    "version": {
+      "type": "string",
+      "description": "Module version (semver)",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "default": "1.0.0"
+    },
+    "author": {
+      "type": "string",
+      "description": "Module author",
+      "default": "Daniel Brändle"
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Required modules that must be installed first",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      },
+      "uniqueItems": true,
+      "default": [],
+      "examples": [["homebrew"], ["system", "homebrew"]]
+    },
+    "conflicts": {
+      "type": "array",
+      "description": "Modules that conflict with this one",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      },
+      "uniqueItems": true,
+      "default": [],
+      "examples": [["legacy-ssh"]]
+    },
+    "stow_packages": {
+      "type": "array",
+      "description": "Stow packages to symlink (from config/ directory)",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": [],
+      "examples": [["zsh", "git"], ["iterm2"]]
+    },
+    "scripts": {
+      "type": "object",
+      "description": "Module lifecycle scripts",
+      "required": ["install"],
+      "properties": {
+        "install": {
+          "type": "string",
+          "description": "Path to installation script (relative to dotfiles root)",
+          "pattern": "^modules/.+\\.sh$",
+          "examples": ["modules/system/install.sh"]
+        },
+        "uninstall": {
+          "type": "string",
+          "description": "Path to uninstallation script",
+          "pattern": "^modules/.+\\.sh$",
+          "examples": ["modules/system/uninstall.sh"]
+        },
+        "update": {
+          "type": "string",
+          "description": "Path to update script",
+          "pattern": "^modules/.+\\.sh$",
+          "examples": ["modules/system/update.sh"]
+        },
+        "test": {
+          "type": "string",
+          "description": "Path to test script",
+          "pattern": "^modules/.+\\.sh$",
+          "examples": ["modules/system/test.sh"]
+        }
+      }
+    },
+    "profiles": {
+      "type": "array",
+      "description": "Profiles this module supports",
+      "items": {
+        "type": "string",
+        "enum": ["desktop", "laptop"]
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "default": ["desktop", "laptop"],
+      "examples": [["desktop", "laptop"], ["desktop"]]
+    },
+    "settings": {
+      "type": "object",
+      "description": "Module-specific settings and configuration",
+      "additionalProperties": true,
+      "examples": [
+        {
+          "brew_file": "modules/homebrew/Brewfile",
+          "auto_update": true
+        }
+      ]
+    },
+    "platforms": {
+      "type": "array",
+      "description": "Supported platforms",
+      "items": {
+        "type": "string",
+        "enum": ["macos", "linux", "windows"]
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "default": ["macos"],
+      "examples": [["macos"]]
+    },
+    "macos_versions": {
+      "type": "object",
+      "description": "macOS version requirements",
+      "properties": {
+        "min": {
+          "type": "string",
+          "description": "Minimum macOS version (e.g., '13.0' for Ventura)",
+          "pattern": "^\\d+\\.\\d+$",
+          "examples": ["13.0", "14.0"]
+        },
+        "max": {
+          "type": "string",
+          "description": "Maximum macOS version (optional)",
+          "pattern": "^\\d+\\.\\d+$"
+        }
+      }
+    },
+    "requires": {
+      "type": "object",
+      "description": "External requirements",
+      "properties": {
+        "commands": {
+          "type": "array",
+          "description": "Required shell commands",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["brew", "git", "stow"]]
+        },
+        "brew_packages": {
+          "type": "array",
+          "description": "Required Homebrew packages",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["dockutil", "mas"]]
+        }
+      }
+    },
+    "optional": {
+      "type": "boolean",
+      "description": "Whether this module is optional (vs required)",
+      "default": true
+    },
+    "enabled_by_default": {
+      "type": "boolean",
+      "description": "Whether this module is enabled by default in full installation",
+      "default": false
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags for categorization and search",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "examples": [["terminal", "shell", "zsh"], ["development", "git"]]
+    },
+    "documentation": {
+      "type": "object",
+      "description": "Documentation links",
+      "properties": {
+        "readme": {
+          "type": "string",
+          "description": "Path to module README",
+          "examples": ["modules/system/README.md"]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "External documentation URL"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "name": "system",
+      "description": "macOS system settings and preferences",
+      "category": "core",
+      "version": "1.0.0",
+      "dependencies": [],
+      "conflicts": [],
+      "stow_packages": [],
+      "scripts": {
+        "install": "modules/system/install.sh",
+        "uninstall": "modules/system/uninstall.sh",
+        "update": "modules/system/update.sh"
+      },
+      "profiles": ["desktop", "laptop"],
+      "platforms": ["macos"],
+      "optional": false,
+      "enabled_by_default": true,
+      "tags": ["system", "macos", "preferences"]
+    },
+    {
+      "name": "iterm2",
+      "description": "iTerm2 terminal emulator configuration",
+      "category": "optional",
+      "version": "1.0.0",
+      "dependencies": ["homebrew"],
+      "conflicts": [],
+      "stow_packages": ["iterm2"],
+      "scripts": {
+        "install": "modules/iterm2/install.sh",
+        "uninstall": "modules/iterm2/uninstall.sh"
+      },
+      "profiles": ["desktop", "laptop"],
+      "requires": {
+        "brew_packages": ["iterm2"]
+      },
+      "optional": true,
+      "enabled_by_default": true,
+      "tags": ["terminal", "iterm2"]
+    }
+  ]
+}
