@@ -66,7 +66,7 @@ main() {
 
         # Install Homebrew using official installation script
         print_status "Downloading and running Homebrew installation script..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
         # Add Homebrew to PATH based on architecture
         if is_apple_silicon; then
