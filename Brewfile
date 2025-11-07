@@ -21,6 +21,8 @@ brew "node"                     # Node.js for JavaScript development
 brew "ffmpeg"                   # Video processing
 brew "nmap"                     # Network scanner
 brew "telnet"                   # Telnet client
+brew "iperf3"                   # Network performance testing
+
 
 # AI Development Tools
 brew "codex"                    # OpenAI Codex CLI tool
@@ -56,10 +58,11 @@ cask "transmit"                 # File transfer client
 cask "hiddenbar"                # Hide menu bar icons
 cask "mark-text"                # Markdown editor
 cask "tunnelblick"              # OpenVPN client
-cask "thunderbird"               # Email client
-cask "balenaetcher"              # OS image flasher
-
-
+cask "thunderbird"              # Email client
+cask "balenaetcher"             # OS image flasher
+cask "syncthing-app"                # File synchronization tool
+cask "alfred"                   # Productivity app launcher
+#cask "bitwarden"                 # Password manager
 
 # Creative & Design
 cask "adobe-creative-cloud"     # Adobe Creative Cloud manager
@@ -84,6 +87,7 @@ cask "appcleaner"               # App uninstaller
 cask "stats"                    # System monitor
 cask "utm"
 cask "balenaetcher"             # Flash OS images to SD cards & USB drives
+cask "knockknock"               # See what's persistently installed on your Mac (Malware)
 
 # Optional: Uncomment apps you want
 # cask "firefox"                # Alternative browser
@@ -104,6 +108,7 @@ mas "Pages", id: 409201541       # Apple's word processor
 mas "Numbers", id: 409203825     # Apple's spreadsheet app
 mas "Keynote", id: 409183694     # Apple's presentation app
 mas "Strongbox", id: 897283731   # KeePass password manager
+mas "Bitwarden", id: 1352778147  # Password manager
 mas "Things 3", id: 904280696     # Task management app
 mas "DaisyDisk", id: 411643860  	# Disk space analyzer
 mas "MindSpace", id: 1585502524     # Mind mapping & diagrams (one-time purchase alternative to MindNode)

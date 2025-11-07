@@ -10,28 +10,20 @@
       "readonly": true,
       "test_command": "ssh -T git@github.com"
     },
-    "pihole": {
+    "example-server": {
       "type": "server",
-      "hostname": "192.168.178.32",
-      "user": "pi",
+      "hostname": "192.168.1.100",
+      "user": "your-username",
       "port": 22,
-      "description": "Pi-hole DNS server",
+      "description": "Example server - replace with your own",
       "test_command": "uptime"
     },
-    "DigitalOcean-0": {
+    "example-vps": {
       "type": "server",
-      "hostname": "209.38.217.45",
+      "hostname": "your-vps.example.com",
       "user": "root",
       "port": 22,
-      "description": "DigitalOcean Droplet; originally for BINDER & T3",
-      "test_command": "uptime"
-    },
-    "All-Inkl-0": {
-      "type": "server",
-      "hostname": "w0103394.kasserver.com",
-      "user": "ssh-w0103394",
-      "port": 22,
-      "description": "My old All-Inkl-Server",
+      "description": "Example VPS - replace with your own",
       "test_command": "uptime"
     }
   },
