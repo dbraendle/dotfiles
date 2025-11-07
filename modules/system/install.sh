@@ -23,7 +23,7 @@ main() {
     # Check if running on macOS
     if ! is_macos; then
         print_error "This module only works on macOS"
-        exit 1
+        return 1
     fi
 
     # Check macOS version (minimum 12.0 Monterey)
@@ -35,7 +35,7 @@ main() {
     if [[ ${version_result} -eq 1 ]]; then
         print_error "This module requires macOS 12.0 (Monterey) or later"
         print_error "Current version: ${macos_version}"
-        exit 1
+        return 1
     fi
 
     print_status "macOS version: ${macos_version}"
@@ -52,7 +52,7 @@ main() {
             *)
                 print_error "Unknown option: $1"
                 echo "Usage: $0 [--profile desktop|laptop]"
-                exit 1
+                return 1
                 ;;
         esac
     done
@@ -63,14 +63,14 @@ main() {
     if [[ "${profile}" != "desktop" && "${profile}" != "laptop" ]]; then
         print_error "Invalid profile: ${profile}"
         print_error "Valid profiles: desktop, laptop"
-        exit 1
+        return 1
     fi
 
     # Source profile settings
     local profile_file="${DOTFILES_ROOT}/profiles/${profile}.sh"
     if [[ ! -f "${profile_file}" ]]; then
         print_error "Profile file not found: ${profile_file}"
-        exit 1
+        return 1
     fi
 
     print_status "Loading profile settings from: ${profile_file}"
@@ -151,7 +151,7 @@ main() {
     else
         print_warning "Installation completed with ${failed} error(s)"
         print_warning "Check the log file for details: ${LOG_FILE}"
-        exit 1
+        return 1
     fi
 }
 
