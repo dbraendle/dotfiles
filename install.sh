@@ -376,9 +376,13 @@ EOF
         1)
             # Full installation - all modules
             print_status "Full installation selected"
-            SELECTED_MODULES=()
+            # Start with core modules in correct order, then add optional modules
+            SELECTED_MODULES=("${CORE_MODULES[@]}")
             while IFS= read -r module; do
-                SELECTED_MODULES+=("$module")
+                # Skip if already in core modules
+                if [[ ! " ${CORE_MODULES[*]} " =~ " ${module} " ]]; then
+                    SELECTED_MODULES+=("$module")
+                fi
             done < <(get_available_modules)
             ;;
         2)
