@@ -84,8 +84,8 @@ confirm() {
         prompt="[y/N]"
     fi
 
-    # Ask the question
-    echo -ne "${YELLOW}${question} ${prompt}${NC} "
+    # Ask the question (force flush to stderr to ensure prompt appears)
+    printf "%s%s %s%s " "${YELLOW}" "${question}" "${prompt}" "${NC}" >&2
     read -er answer
 
     # Handle empty answer (use default)
