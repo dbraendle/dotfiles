@@ -1,0 +1,22 @@
+{
+  "name": "dock",
+  "description": "macOS Dock configuration with app launcher setup",
+  "category": "macos",
+  "version": "1.0.0",
+  "dependencies": ["homebrew"],
+  "conflicts": [],
+  "stow_packages": [],
+  "scripts": {
+    "install": "modules/dock/install.sh",
+    "update": "modules/dock/update.sh",
+    "uninstall": "modules/dock/uninstall.sh"
+  },
+  "profiles": ["desktop", "laptop"],
+  "platforms": ["macos"],
+  "requires": {
+    "commands": []
+  },
+  "optional": true,
+  "enabled_by_default": true,
+  "tags": ["dock", "macos", "ui"]
+}

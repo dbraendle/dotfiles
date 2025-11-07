@@ -1,0 +1,73 @@
+# Dock Apps Configuration
+#
+# Format:
+#   AppName                  - Adds app to Dock
+#   ---                      - Adds a spacer (small gap)
+#   folder:/path/to/folder   - Adds folder to right side of Dock
+#
+# Comments (lines starting with #) are ignored
+# Empty lines are ignored
+#
+# WICHTIG: Verwende exakte App-Namen wie sie in /Applications/ oder /System/Applications/ heißen
+# Beispiel: "Things3" nicht "Things", "Google Chrome" nicht "Chrome"
+
+# === Essentials ===
+Apps
+Things3
+Strongbox
+Safari
+Spotify
+
+---
+
+Claude
+
+---
+
+Mail
+Messages
+FaceTime
+
+---
+
+Google Chrome
+
+---
+
+Maps
+Photos
+Calendar
+Contacts
+Reminders
+Notes
+Freeform
+MindSpace
+
+---
+
+# === Development ===
+Visual Studio Code
+Sublime Text
+Terminal
+iTerm
+Transmit
+
+---
+
+# === Adobe Suite ===
+Adobe InDesign 2025
+Adobe Photoshop 2025
+Adobe Illustrator
+#Adobe XD
+Adobe Acrobat
+
+---
+
+# === Virtual Machines ===
+macOS VM
+Ubuntu VM
+
+---
+
+# === Folders & Files (right side of Dock) ===
+folder:~/Downloads
