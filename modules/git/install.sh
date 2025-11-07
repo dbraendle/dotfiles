@@ -46,6 +46,36 @@ main() {
 
     print_status "Using Git user: ${git_user_name} <${git_user_email}>"
 
+    # Ensure GNU Stow is installed
+    if ! command_exists stow; then
+        print_warning "GNU Stow is not installed"
+        echo ""
+
+        if command_exists brew; then
+            print_status "GNU Stow can be installed via Homebrew"
+            echo ""
+
+            if confirm "Install GNU Stow now?" "y"; then
+                print_status "Installing GNU Stow via Homebrew..."
+                if brew install stow; then
+                    print_success "GNU Stow installed successfully"
+                else
+                    print_error "Failed to install GNU Stow"
+                    return 1
+                fi
+            else
+                print_error "Cannot proceed without GNU Stow"
+                print_status "Install manually: brew install stow"
+                return 1
+            fi
+        else
+            print_error "Homebrew is not installed"
+            print_status "Please install Homebrew first, then run: brew install stow"
+            return 1
+        fi
+        echo ""
+    fi
+
     # Stow the Git configuration package
     print_status "Stowing Git configuration..."
     if ! stow_package "git"; then

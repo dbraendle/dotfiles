@@ -2,7 +2,7 @@
 # terminal/install.sh - Install Oh My Zsh and terminal configuration
 # Part of the dotfiles v2 modular system
 
-set -euo pipefail
+set -e
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -74,7 +74,37 @@ main() {
         print_success "Zsh is already the default shell"
     fi
 
-    # Step 4: Stow the zsh configuration package
+    # Step 4: Ensure GNU Stow is installed
+    if ! command_exists stow; then
+        print_warning "GNU Stow is not installed"
+        echo ""
+
+        if command_exists brew; then
+            print_status "GNU Stow can be installed via Homebrew"
+            echo ""
+
+            if confirm "Install GNU Stow now?" "y"; then
+                print_status "Installing GNU Stow via Homebrew..."
+                if brew install stow; then
+                    print_success "GNU Stow installed successfully"
+                else
+                    print_error "Failed to install GNU Stow"
+                    return 1
+                fi
+            else
+                print_error "Cannot proceed without GNU Stow"
+                print_status "Install manually: brew install stow"
+                return 1
+            fi
+        else
+            print_error "Homebrew is not installed"
+            print_status "Please install Homebrew first, then run: brew install stow"
+            return 1
+        fi
+        echo ""
+    fi
+
+    # Step 5: Stow the zsh configuration package
     print_status "Stowing zsh configuration..."
     if stow_package "zsh"; then
         print_success "Zsh configuration stowed successfully"
@@ -83,7 +113,7 @@ main() {
         return 1
     fi
 
-    # Step 5: Note about Homebrew packages
+    # Step 6: Note about Homebrew packages
     print_status "Note: Homebrew packages (zsh-autosuggestions, zsh-syntax-highlighting)"
     print_status "      are managed by the homebrew module via Brewfile"
 
