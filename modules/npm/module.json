@@ -1,0 +1,22 @@
+{
+  "name": "npm",
+  "description": "NPM global packages for development",
+  "category": "core",
+  "version": "1.0.0",
+  "dependencies": ["homebrew"],
+  "conflicts": [],
+  "stow_packages": [],
+  "scripts": {
+    "install": "modules/npm/install.sh",
+    "update": "modules/npm/update.sh",
+    "uninstall": "modules/npm/uninstall.sh"
+  },
+  "profiles": ["desktop", "laptop"],
+  "platforms": ["macos"],
+  "requires": {
+    "commands": ["npm", "node"]
+  },
+  "optional": false,
+  "enabled_by_default": true,
+  "tags": ["npm", "nodejs", "development"]
+}

@@ -62,7 +62,7 @@ PROFILE_FILE="${HOME}/.dotfiles-profile"
 # Module configuration
 SELECTED_MODULES=()
 MODULES_FILE="${HOME}/.dotfiles-modules"
-CORE_MODULES=("system" "homebrew" "terminal" "git")
+CORE_MODULES=("system" "homebrew" "npm" "terminal" "git")
 
 # Installation options
 AUTO_YES=false
