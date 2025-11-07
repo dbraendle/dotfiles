@@ -1,0 +1,21 @@
+{
+  "name": "system",
+  "description": "macOS system settings and preferences",
+  "category": "core",
+  "version": "1.0.0",
+  "dependencies": [],
+  "conflicts": [],
+  "stow_packages": [],
+  "scripts": {
+    "install": "modules/system/install.sh",
+    "uninstall": "modules/system/uninstall.sh"
+  },
+  "profiles": ["desktop", "laptop"],
+  "platforms": ["macos"],
+  "macos_versions": {
+    "min": "12.0"
+  },
+  "optional": false,
+  "enabled_by_default": true,
+  "tags": ["system", "macos", "preferences"]
+}

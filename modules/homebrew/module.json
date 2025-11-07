@@ -1,0 +1,25 @@
+{
+  "name": "homebrew",
+  "description": "Homebrew package manager and package installation",
+  "category": "core",
+  "version": "1.0.0",
+  "dependencies": [],
+  "conflicts": [],
+  "stow_packages": [],
+  "scripts": {
+    "install": "modules/homebrew/install.sh",
+    "uninstall": "modules/homebrew/uninstall.sh",
+    "update": "modules/homebrew/update.sh"
+  },
+  "profiles": ["desktop", "laptop"],
+  "platforms": ["macos"],
+  "macos_versions": {
+    "min": "12.0"
+  },
+  "requires": {
+    "commands": ["curl"]
+  },
+  "optional": false,
+  "enabled_by_default": true,
+  "tags": ["package-manager", "homebrew"]
+}

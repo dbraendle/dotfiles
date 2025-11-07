@@ -1,0 +1,21 @@
+{
+  "name": "git",
+  "description": "Git version control configuration",
+  "category": "core",
+  "version": "1.0.0",
+  "dependencies": ["homebrew"],
+  "conflicts": [],
+  "stow_packages": ["git"],
+  "scripts": {
+    "install": "modules/git/install.sh",
+    "uninstall": "modules/git/uninstall.sh"
+  },
+  "profiles": ["desktop", "laptop"],
+  "platforms": ["macos"],
+  "requires": {
+    "commands": ["git"]
+  },
+  "optional": false,
+  "enabled_by_default": true,
+  "tags": ["git", "version-control"]
+}
