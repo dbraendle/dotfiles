@@ -899,6 +899,9 @@ EOF
         exit 1
     fi
 
+    # Setup iCloud / Apple ID (do this early so mas apps can install later)
+    setup_icloud
+
     # Detect hardware profile
     detect_profile
 
@@ -921,9 +924,6 @@ EOF
     if ! confirm_installation; then
         exit 0
     fi
-
-    # Setup iCloud / Apple ID
-    setup_icloud
 
     echo ""
     print_status "Starting installation process..."
