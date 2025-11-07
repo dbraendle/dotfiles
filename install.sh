@@ -304,17 +304,17 @@ show_interactive_menu() {
 EOF
 
     echo ""
-    print_status "Detected Profile: $(echo "$SELECTED_PROFILE" | sed 's/./\U&/')"
+    print_status "Detected Profile: ${SELECTED_PROFILE^}"
     echo ""
 
-    if ! confirm "Use $(echo "$SELECTED_PROFILE" | sed 's/./\U&/') profile?" "y"; then
+    if ! confirm "Use ${SELECTED_PROFILE^} profile?" "y"; then
         # Switch profile
         if [[ "$SELECTED_PROFILE" == "laptop" ]]; then
             SELECTED_PROFILE="desktop"
         else
             SELECTED_PROFILE="laptop"
         fi
-        print_success "Profile changed to: $(echo "$SELECTED_PROFILE" | sed 's/./\U&/')"
+        print_success "Profile changed to: ${SELECTED_PROFILE^}"
         echo "$SELECTED_PROFILE" > "$PROFILE_FILE"
         sleep 1
     fi
