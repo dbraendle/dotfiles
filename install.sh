@@ -831,7 +831,7 @@ confirm_installation() {
 
 #######################################
 # Setup iCloud / Apple ID
-# Prompts user to configure iCloud for Mac App Store access
+# Early prompt to configure Apple ID before installation
 #######################################
 setup_icloud() {
     if [[ "$AUTO_YES" == "true" ]]; then
@@ -840,22 +840,21 @@ setup_icloud() {
 
     print_section "Apple ID Setup"
     echo ""
-    print_status "Mac App Store apps require Apple ID sign-in"
-    print_status "This includes: Things 3, Strongbox, DaisyDisk, and more"
+    print_status "Mac App Store apps (Things 3, Strongbox, DaisyDisk, etc.) require Apple ID"
     echo ""
 
-    if confirm "Configure Apple ID now? (Recommended)" "y"; then
+    if confirm "Configure Apple ID now?" "y"; then
         print_status "Opening System Settings..."
         open "x-apple.systempreferences:com.apple.preferences.AppleIDPrefPane"
         echo ""
         print_warning "Please sign in to Apple ID if not already done"
-        print_status "Then press Enter to continue with installation"
+        print_status "Press Enter when ready to continue"
         read -r
         echo ""
-        print_success "Continuing with installation..."
+        print_success "Continuing..."
     else
-        print_warning "Skipping Apple ID setup"
-        print_status "Mac App Store apps may fail to install later"
+        print_status "Skipping Apple ID setup"
+        print_status "You'll be asked again later if needed for App Store apps"
     fi
     echo ""
 }

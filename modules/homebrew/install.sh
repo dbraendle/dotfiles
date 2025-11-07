@@ -120,20 +120,50 @@ main() {
 
         print_status "Found ${brew_count} formulae, ${cask_count} casks, and ${mas_count} Mac App Store apps"
 
-        # Note: iCloud sign-in should be done at the beginning of installation via setup_icloud()
-        # Just show status here
+        # Check App Store sign-in for mas apps
+        local use_brewfile="${BREWFILE}"
         if [[ ${mas_count} -gt 0 ]]; then
             if mas account &>/dev/null; then
                 print_success "App Store signed in: $(mas account)"
+                echo ""
             else
-                print_warning "Not signed in to App Store - mas apps will fail to install"
-                print_status "Tip: Sign in to App Store manually or restart installation"
+                # Not signed in - last chance to sign in or skip mas apps
+                echo ""
+                print_warning "Not signed in to App Store"
+                print_status "${mas_count} App Store apps will fail without sign-in"
+                echo ""
+
+                if confirm "Open App Store to sign in now?" "y"; then
+                    print_status "Opening App Store..."
+                    open -a "App Store"
+                    echo ""
+                    print_warning "Please sign in to App Store, then press Enter to continue"
+                    read -r
+                    echo ""
+
+                    # Check if signed in now
+                    if mas account &>/dev/null; then
+                        print_success "App Store signed in: $(mas account)"
+                    else
+                        print_warning "Still not signed in - Mac App Store apps will be skipped"
+                        # Create temporary Brewfile without mas entries
+                        use_brewfile="${BREWFILE}.tmp"
+                        grep -v "^mas " "${BREWFILE}" > "${use_brewfile}"
+                        print_debug "Created temporary Brewfile without mas apps: ${use_brewfile}"
+                    fi
+                else
+                    print_status "Skipping App Store apps"
+                    # Create temporary Brewfile without mas entries
+                    use_brewfile="${BREWFILE}.tmp"
+                    grep -v "^mas " "${BREWFILE}" > "${use_brewfile}"
+                    print_debug "Created temporary Brewfile without mas apps: ${use_brewfile}"
+                fi
+                echo ""
             fi
-            echo ""
         fi
 
         # Run brew bundle with proper error handling
-        if brew bundle install --file="${BREWFILE}"; then
+        if brew bundle install --file="${use_brewfile}"; then
             print_success "All packages installed successfully"
         else
             local exit_code=$?
@@ -149,6 +179,12 @@ main() {
     # Final cleanup
     print_subsection "Cleaning up"
     brew cleanup || print_warning "Cleanup had issues, but installation is complete"
+
+    # Remove temporary Brewfile if created
+    if [[ -f "${BREWFILE}.tmp" ]]; then
+        rm -f "${BREWFILE}.tmp"
+        print_debug "Removed temporary Brewfile"
+    fi
 
     print_success "Homebrew installation complete!"
     print_status "Homebrew prefix: $(brew --prefix)"
