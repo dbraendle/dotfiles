@@ -84,7 +84,8 @@ cask "alfred"                   # Productivity app launcher
 #######################################
 # Creative & Design
 #######################################
-cask "adobe-creative-cloud"     # Adobe Creative Cloud manager
+# Adobe Creative Cloud removed - too heavy for automated installation
+# Install manually if needed: brew install --cask adobe-creative-cloud
 
 #######################################
 # Productivity & Communication
