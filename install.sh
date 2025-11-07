@@ -264,21 +264,6 @@ check_prerequisites() {
         print_success "Xcode Command Line Tools installed"
     fi
 
-    # Accept Xcode license if needed (only for full Xcode app, not Command Line Tools)
-    # Check if full Xcode is installed (not just Command Line Tools)
-    if [[ -d "/Applications/Xcode.app" ]]; then
-        if command_exists xcodebuild; then
-            if ! xcodebuild -license check 2>/dev/null; then
-                print_warning "Xcode license needs to be accepted"
-                if [[ "$AUTO_YES" == "true" ]] || confirm "Accept Xcode license?"; then
-                    print_status "Accepting Xcode license (may require password)..."
-                    sudo xcodebuild -license accept
-                    print_success "Xcode license accepted"
-                fi
-            fi
-        fi
-    fi
-
     # Check for jq (needed for module validation)
     if ! command_exists jq; then
         print_warning "jq is not installed (needed for module management)"
