@@ -1,0 +1,22 @@
+{
+  "name": "scanner",
+  "description": "Scanner shortcuts for document and photo scanning",
+  "category": "utilities",
+  "version": "1.0.0",
+  "dependencies": [],
+  "conflicts": [],
+  "stow_packages": [],
+  "scripts": {
+    "install": "modules/scanner/install.sh",
+    "update": "modules/scanner/update.sh",
+    "uninstall": "modules/scanner/uninstall.sh"
+  },
+  "profiles": ["desktop"],
+  "platforms": ["macos"],
+  "requires": {
+    "commands": []
+  },
+  "optional": true,
+  "enabled_by_default": false,
+  "tags": ["scanner", "utilities", "productivity"]
+}

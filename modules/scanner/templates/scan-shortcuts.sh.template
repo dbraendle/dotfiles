@@ -1,0 +1,260 @@
+#!/bin/bash
+# Scanner shortcuts - Generated from template
+# Scanner Host: {{SCANNER_HOST}}
+
+set -euo pipefail
+
+# Configuration
+SCANNER_HOST="{{SCANNER_HOST}}"
+SCAN_DIR="${HOME}/Documents/Scans"
+CONFIG_FILE="${HOME}/.scanner-config"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${GREEN}[INFO]${NC} $*"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $*"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $*"
+}
+
+# Ensure scan directory exists
+ensure_scan_dir() {
+    if [[ ! -d "$SCAN_DIR" ]]; then
+        log_info "Creating scan directory: $SCAN_DIR"
+        mkdir -p "$SCAN_DIR"
+    fi
+}
+
+# Check if scanimage is available
+check_scanimage() {
+    if ! command -v scanimage &> /dev/null; then
+        log_error "scanimage command not found!"
+        log_error "Please install SANE backend:"
+        log_error "  brew install sane-backends"
+        return 1
+    fi
+    return 0
+}
+
+# Generate filename with timestamp
+generate_filename() {
+    local prefix="$1"
+    local extension="$2"
+    local timestamp
+    timestamp=$(date +"%Y%m%d_%H%M%S")
+    echo "${SCAN_DIR}/${prefix}_${timestamp}.${extension}"
+}
+
+# Test scanner connection
+test_scanner() {
+    log_info "Testing connection to scanner at ${SCANNER_HOST}..."
+
+    if ! check_scanimage; then
+        return 1
+    fi
+
+    # Try to list available scanners
+    if scanimage -L 2>/dev/null | grep -q "device"; then
+        log_info "Scanner connection successful!"
+        return 0
+    else
+        log_warn "Could not detect scanner. Please check:"
+        log_warn "  1. Scanner server is running at ${SCANNER_HOST}"
+        log_warn "  2. Network connection is working"
+        log_warn "  3. SANE is properly configured"
+        return 1
+    fi
+}
+
+# Scan document (PDF, Flatbed)
+scan_document() {
+    ensure_scan_dir
+    check_scanimage || return 1
+
+    local output_file
+    output_file=$(generate_filename "document" "pdf")
+
+    log_info "Scanning document to: ${output_file}"
+    log_info "Using flatbed scanner mode..."
+
+    # Scan with document settings (300dpi, A4, grayscale)
+    if scanimage --device-name="net:${SCANNER_HOST}:*" \
+        --format=tiff \
+        --mode=Gray \
+        --resolution=300 \
+        --page-width=210 \
+        --page-height=297 \
+        > "${output_file}.tif" 2>/dev/null; then
+
+        # Convert TIFF to PDF if possible
+        if command -v convert &> /dev/null; then
+            convert "${output_file}.tif" "${output_file}"
+            rm "${output_file}.tif"
+            log_info "Document scanned successfully: ${output_file}"
+        else
+            mv "${output_file}.tif" "${output_file%.pdf}.tif"
+            log_warn "ImageMagick not found. Saved as TIFF instead."
+            log_info "Install with: brew install imagemagick"
+        fi
+    else
+        log_error "Scan failed. Check scanner connection."
+        return 1
+    fi
+}
+
+# Scan photo (JPG, high resolution)
+scan_photo() {
+    ensure_scan_dir
+    check_scanimage || return 1
+
+    local output_file
+    output_file=$(generate_filename "photo" "jpg")
+
+    log_info "Scanning photo to: ${output_file}"
+    log_info "Using high-resolution color mode..."
+
+    # Scan with photo settings (600dpi, color)
+    if scanimage --device-name="net:${SCANNER_HOST}:*" \
+        --format=tiff \
+        --mode=Color \
+        --resolution=600 \
+        --page-width=210 \
+        --page-height=297 \
+        > "${output_file}.tif" 2>/dev/null; then
+
+        # Convert TIFF to JPG if possible
+        if command -v convert &> /dev/null; then
+            convert "${output_file}.tif" -quality 95 "${output_file}"
+            rm "${output_file}.tif"
+            log_info "Photo scanned successfully: ${output_file}"
+        else
+            mv "${output_file}.tif" "${output_file%.jpg}.tif"
+            log_warn "ImageMagick not found. Saved as TIFF instead."
+            log_info "Install with: brew install imagemagick"
+        fi
+    else
+        log_error "Scan failed. Check scanner connection."
+        return 1
+    fi
+}
+
+# Scan multi-page document (PDF with ADF)
+scan_multipage() {
+    ensure_scan_dir
+    check_scanimage || return 1
+
+    local output_file
+    output_file=$(generate_filename "multipage" "pdf")
+    local temp_dir
+    temp_dir=$(mktemp -d)
+
+    log_info "Scanning multi-page document to: ${output_file}"
+    log_info "Using ADF (Automatic Document Feeder)..."
+    log_info "Place all pages in the document feeder and press Enter..."
+    read -r
+
+    # Scan multiple pages with ADF
+    local page=1
+    while true; do
+        log_info "Scanning page ${page}..."
+
+        if scanimage --device-name="net:${SCANNER_HOST}:*" \
+            --format=tiff \
+            --mode=Gray \
+            --resolution=300 \
+            --source=ADF \
+            --page-width=210 \
+            --page-height=297 \
+            > "${temp_dir}/page_${page}.tif" 2>/dev/null; then
+
+            page=$((page + 1))
+        else
+            # ADF is empty or error occurred
+            break
+        fi
+    done
+
+    local total_pages=$((page - 1))
+
+    if [[ $total_pages -eq 0 ]]; then
+        log_error "No pages scanned. Check ADF and scanner connection."
+        rm -rf "$temp_dir"
+        return 1
+    fi
+
+    log_info "Scanned ${total_pages} page(s)"
+
+    # Convert all TIFFs to single PDF
+    if command -v convert &> /dev/null; then
+        log_info "Creating PDF..."
+        convert "${temp_dir}"/page_*.tif "${output_file}"
+        rm -rf "$temp_dir"
+        log_info "Multi-page document scanned successfully: ${output_file}"
+    else
+        log_warn "ImageMagick not found. TIFF files saved in: ${temp_dir}"
+        log_info "Install with: brew install imagemagick"
+        mv "$temp_dir" "${SCAN_DIR}/multipage_$(date +"%Y%m%d_%H%M%S")_tiffs"
+    fi
+}
+
+# Show scanner configuration
+show_config() {
+    echo "Scanner Configuration:"
+    echo "  Scanner Host: ${SCANNER_HOST}"
+    echo "  Scan Directory: ${SCAN_DIR}"
+    echo "  Config File: ${CONFIG_FILE}"
+    echo ""
+
+    if check_scanimage; then
+        echo "Available scanners:"
+        scanimage -L 2>/dev/null || echo "  No scanners detected"
+    fi
+}
+
+# Main function to handle different scan types
+main() {
+    local script_name
+    script_name=$(basename "$0")
+
+    case "$script_name" in
+        scan-document)
+            scan_document
+            ;;
+        scan-photo)
+            scan_photo
+            ;;
+        scan-multipage)
+            scan_multipage
+            ;;
+        scan-test)
+            test_scanner
+            ;;
+        scan-config)
+            show_config
+            ;;
+        *)
+            log_error "Unknown command: $script_name"
+            log_info "Available commands:"
+            log_info "  scan-document   - Scan single document as PDF (flatbed)"
+            log_info "  scan-photo      - Scan photo as high-res JPG"
+            log_info "  scan-multipage  - Scan multiple pages as PDF (ADF)"
+            log_info "  scan-test       - Test scanner connection"
+            log_info "  scan-config     - Show scanner configuration"
+            return 1
+            ;;
+    esac
+}
+
+# Run main function
+main "$@"
