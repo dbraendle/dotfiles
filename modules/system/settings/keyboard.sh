@@ -83,9 +83,8 @@ if [[ -n "${MACOS_VERSION:-}" ]]; then
         # Disable WebKit-specific autocorrect (Safari, Mail, Notes)
         defaults write NSGlobalDomain WebAutomaticSpellingCorrectionEnabled -bool false
 
-        # Ensure Safari respects autocorrect settings (may fail due to container permissions)
-        defaults write com.apple.Safari WebAutomaticSpellingCorrectionEnabled -bool false 2>/dev/null || true
-        defaults write com.apple.Safari WebContinuousSpellCheckingEnabled -bool false 2>/dev/null || true
+        # Note: Safari-specific settings are synced via iCloud and cannot be set via defaults
+        # on macOS 15+ due to container permissions. Configure Safari manually or use iCloud Sync.
 
         print_success "Tahoe-specific autocorrect fixes applied"
     else
