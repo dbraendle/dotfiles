@@ -101,6 +101,72 @@ confirm() {
 }
 
 #######################################
+# Clean up old backup files
+# Arguments:
+#   $1 - Base file path (e.g., /Users/db/.zshrc)
+# Returns:
+#   0 always
+# Notes:
+#   - Keeps the 10 newest backups
+#   - Deletes backups older than 3 months (90 days)
+#   - Always keeps at least 10 backups regardless of age
+#######################################
+cleanup_old_backups() {
+    local base_file="$1"
+    local backup_pattern="${base_file}.backup-*"
+
+    # Find all backups for this file, sorted by modification time (newest first)
+    local backups=()
+    while IFS= read -r backup; do
+        backups+=("$backup")
+    done < <(find "$(dirname "${base_file}")" -maxdepth 1 -name "$(basename "${backup_pattern}")" -type f -print0 2>/dev/null | xargs -0 ls -t 2>/dev/null)
+
+    local total_backups=${#backups[@]}
+
+    # If we have 10 or fewer backups, keep all
+    if [[ ${total_backups} -le 10 ]]; then
+        print_debug "Found ${total_backups} backups for ${base_file}, keeping all"
+        return 0
+    fi
+
+    print_debug "Found ${total_backups} backups for ${base_file}, cleaning up old ones"
+
+    # Current time in seconds since epoch
+    local now
+    now="$(date +%s)"
+    local three_months_ago=$((now - 7776000))  # 90 days * 24 hours * 60 min * 60 sec
+
+    # Process backups starting from the 11th one
+    local index=0
+    local deleted=0
+    for backup in "${backups[@]}"; do
+        ((index++))
+
+        # Skip the first 10 (newest)
+        if [[ ${index} -le 10 ]]; then
+            continue
+        fi
+
+        # Get file modification time
+        local file_time
+        file_time="$(stat -f %m "${backup}" 2>/dev/null || stat -c %Y "${backup}" 2>/dev/null)"
+
+        # Delete if older than 3 months
+        if [[ ${file_time} -lt ${three_months_ago} ]]; then
+            print_debug "Deleting old backup: ${backup}"
+            rm -f "${backup}"
+            ((deleted++))
+        fi
+    done
+
+    if [[ ${deleted} -gt 0 ]]; then
+        print_debug "Deleted ${deleted} old backup(s) for ${base_file}"
+    fi
+
+    return 0
+}
+
+#######################################
 # Create a backup of a file with timestamp
 # Arguments:
 #   $1 - File path to backup
@@ -108,6 +174,7 @@ confirm() {
 #   0 if backup successful, 1 otherwise
 # Outputs:
 #   Creates backup file with .backup-TIMESTAMP extension
+#   Automatically cleans up old backups
 #######################################
 create_backup() {
     local file="$1"
@@ -130,6 +197,10 @@ create_backup() {
 
     if cp -a "${file}" "${backup_file}"; then
         print_success "Backup created: ${backup_file}"
+
+        # Clean up old backups
+        cleanup_old_backups "${file}"
+
         return 0
     else
         print_error "Failed to create backup of ${file}"
