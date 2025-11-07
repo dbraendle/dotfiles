@@ -1,0 +1,22 @@
+{
+  "name": "ssh",
+  "description": "SSH configuration template (managed by Homelab Ansible)",
+  "category": "core",
+  "version": "1.0.0",
+  "dependencies": [],
+  "conflicts": [],
+  "stow_packages": [],
+  "scripts": {
+    "install": "modules/ssh/install.sh",
+    "update": "modules/ssh/update.sh",
+    "uninstall": "modules/ssh/uninstall.sh"
+  },
+  "profiles": ["desktop", "laptop", "server"],
+  "platforms": ["macos", "linux"],
+  "requires": {
+    "commands": ["ssh"]
+  },
+  "optional": false,
+  "enabled_by_default": true,
+  "tags": ["ssh", "network", "security"]
+}

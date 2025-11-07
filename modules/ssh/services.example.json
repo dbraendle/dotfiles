@@ -1,0 +1,59 @@
+{
+  "ssh_hosts": [
+    {
+      "name": "homelab-server",
+      "description": "Main homelab server",
+      "hostname": "192.168.1.100",
+      "user": "admin",
+      "port": 22,
+      "identity_file": "~/.ssh/id_ed25519",
+      "forward_agent": false,
+      "notes": "Primary homelab server"
+    },
+    {
+      "name": "vpn-gateway",
+      "description": "VPN gateway server",
+      "hostname": "vpn.example.com",
+      "user": "vpnuser",
+      "port": 2222,
+      "identity_file": "~/.ssh/id_rsa",
+      "forward_agent": false,
+      "proxy_jump": "homelab-server",
+      "notes": "VPN server behind homelab"
+    },
+    {
+      "name": "backup-server",
+      "description": "Backup storage server",
+      "hostname": "backup.local",
+      "user": "backup",
+      "port": 22,
+      "identity_file": "~/.ssh/id_ed25519",
+      "forward_agent": false,
+      "notes": "Local backup server"
+    },
+    {
+      "name": "development-vm",
+      "description": "Development virtual machine",
+      "hostname": "dev.homelab.local",
+      "user": "developer",
+      "port": 22,
+      "identity_file": "~/.ssh/id_ed25519",
+      "forward_agent": true,
+      "notes": "Development VM, forward agent enabled for git operations"
+    }
+  ],
+  "ansible_notes": [
+    "This is an EXAMPLE file for documentation purposes only",
+    "Real server data should be stored in your Ansible inventory",
+    "Never commit actual server IPs or sensitive data to this repo",
+    "The Ansible playbook should read from inventory/hosts.yml",
+    "SSH config will be generated from Ansible templates"
+  ],
+  "security_notes": [
+    "Always use ED25519 keys (ssh-keygen -t ed25519)",
+    "Never enable ForwardAgent on untrusted hosts",
+    "Use ProxyJump for accessing internal networks",
+    "Keep your SSH keys encrypted with a passphrase",
+    "Regularly rotate SSH keys and review authorized_keys"
+  ]
+}
