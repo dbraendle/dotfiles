@@ -38,9 +38,41 @@ main() {
 
     # Check if npm is available
     if ! command_exists npm; then
-        print_error "npm is not installed"
-        print_status "Please install Node.js first (should be installed via homebrew module)"
-        return 1
+        print_warning "npm is not installed"
+        echo ""
+
+        # Check if we can install via Homebrew
+        if command_exists brew; then
+            print_status "Node.js can be installed via Homebrew"
+            echo ""
+
+            if confirm "Install Node.js now?" "y"; then
+                print_status "Installing Node.js via Homebrew..."
+                if brew install node; then
+                    print_success "Node.js installed successfully"
+                    # Reload PATH
+                    eval "$(brew shellenv)"
+
+                    # Verify npm is now available
+                    if ! command_exists npm; then
+                        print_error "npm still not found after Node.js installation"
+                        return 1
+                    fi
+                else
+                    print_error "Failed to install Node.js"
+                    return 1
+                fi
+            else
+                print_error "Cannot proceed without Node.js"
+                print_status "Install Node.js manually: brew install node"
+                return 1
+            fi
+        else
+            print_error "Homebrew is not installed"
+            print_status "Please install Homebrew first, then run: brew install node"
+            return 1
+        fi
+        echo ""
     fi
 
     print_success "Node.js version: $(node --version)"
