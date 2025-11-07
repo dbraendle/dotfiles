@@ -370,7 +370,8 @@ Installation Options:
 
 EOF
 
-    read -erp "Select option [1-3, Q]: " choice
+    read -erp "Select option [1-3, Q] (default: 1): " choice
+    choice="${choice:-1}"  # Default to option 1 if empty
 
     case "$choice" in
         1)
