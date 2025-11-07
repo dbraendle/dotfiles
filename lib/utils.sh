@@ -340,3 +340,36 @@ get_real_user() {
 is_ci() {
     [[ -n "${CI:-}" ]] || [[ -n "${GITHUB_ACTIONS:-}" ]] || [[ -n "${TRAVIS:-}" ]] || [[ -n "${CIRCLECI:-}" ]]
 }
+
+#######################################
+# Prompt user for input with optional default value
+# Arguments:
+#   $1 - Prompt text (e.g., "Git user name")
+#   $2 - Default value (optional, shown in brackets)
+# Returns:
+#   0 always
+# Outputs:
+#   Writes user input (or default) to stdout
+#######################################
+prompt_input() {
+    local prompt_text="$1"
+    local default_value="${2:-}"
+    local user_input
+
+    # Build prompt with default if provided
+    if [[ -n "${default_value}" ]]; then
+        echo -ne "${YELLOW}${prompt_text} [${default_value}]:${NC} "
+    else
+        echo -ne "${YELLOW}${prompt_text}:${NC} "
+    fi
+
+    # Read user input
+    read -r user_input
+
+    # Use default if input is empty
+    if [[ -z "${user_input}" && -n "${default_value}" ]]; then
+        echo "${default_value}"
+    else
+        echo "${user_input}"
+    fi
+}
