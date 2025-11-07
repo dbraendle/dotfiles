@@ -110,7 +110,12 @@ main() {
         echo ""
         print_status "You can retry failed packages manually with:"
         print_status "  npm install -g <package-name>"
-        return 1
+
+        # Only fail if ALL packages failed
+        if [[ ${installed_count} -eq 0 ]]; then
+            print_error "All npm packages failed to install"
+            return 1
+        fi
     fi
 
     print_success "NPM module installation completed"
