@@ -121,7 +121,7 @@ main() {
         print_status "Found ${brew_count} formulae, ${cask_count} casks, and ${mas_count} Mac App Store apps"
 
         # Run brew bundle with proper error handling
-        if brew bundle install --file="${BREWFILE}" --no-lock; then
+        if brew bundle install --file="${BREWFILE}"; then
             print_success "All packages installed successfully"
         else
             local exit_code=$?
