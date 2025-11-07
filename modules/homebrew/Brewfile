@@ -20,6 +20,8 @@ brew "wget"                     # Downloads
 brew "jq"                       # JSON processor
 brew "tree"                     # Directory structure visualization
 brew "node"                     # Node.js for JavaScript development
+brew "typescript"               # TypeScript compiler and language support
+brew "prettier"                 # Code formatter for JavaScript, CSS, JSON, etc
 brew "ffmpeg"                   # Video processing
 brew "nmap"                     # Network scanner
 brew "telnet"                   # Telnet client
@@ -69,6 +71,7 @@ cask "google-chrome"            # Browser with dev tools
 cask "iterm2"                   # Better terminal
 cask "docker-desktop"           # Docker Desktop (includes CLI + GUI)
 cask "claude"                   # Claude Desktop (full version)
+cask "claude-code"              # Claude Code CLI (native binary, replaces npm version)
 #cask "grok"                    # Grok Desktop (full version)
 cask "transmit"                 # File transfer client
 cask "hiddenbar"                # Hide menu bar icons
