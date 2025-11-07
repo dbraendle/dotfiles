@@ -715,7 +715,7 @@ install_modules() {
             # Ask user if they want to continue
             if [[ "$AUTO_YES" == "false" ]] && [[ " ${CORE_MODULES[*]} " =~ " ${module} " ]]; then
                 print_error "Core module '$module' failed to install"
-                if ! confirm "Continue with remaining modules?" "n"; then
+                if ! confirm "Continue with remaining modules?" "y"; then
                     print_error "Installation aborted"
                     return 1
                 fi
