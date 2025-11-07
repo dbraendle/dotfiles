@@ -30,27 +30,21 @@ main() {
 
     print_success "Git is installed: $(git --version)"
 
-    # Get current Git user configuration (if exists)
-    local current_name
-    local current_email
-    current_name=$(git config --global user.name 2>/dev/null || echo "")
-    current_email=$(git config --global user.email 2>/dev/null || echo "")
+    # Use values from environment (set by main install.sh) or current git config
+    local git_user_name="${GIT_USER_NAME:-$(git config --global user.name 2>/dev/null)}"
+    local git_user_email="${GIT_USER_EMAIL:-$(git config --global user.email 2>/dev/null)}"
 
-    # Prompt for Git user name
-    local git_user_name
-    if [[ -n "${current_name}" ]]; then
-        git_user_name=$(prompt_input "Git user name" "${current_name}")
-    else
-        git_user_name=$(prompt_input "Git user name" "Your Name")
+    # Validate we have values
+    if [[ -z "${git_user_name}" ]]; then
+        print_error "Git user name not provided"
+        return 1
+    fi
+    if [[ -z "${git_user_email}" ]]; then
+        print_error "Git user email not provided"
+        return 1
     fi
 
-    # Prompt for Git user email
-    local git_user_email
-    if [[ -n "${current_email}" ]]; then
-        git_user_email=$(prompt_input "Git user email" "${current_email}")
-    else
-        git_user_email=$(prompt_input "Git user email" "your@email.com")
-    fi
+    print_status "Using Git user: ${git_user_name} <${git_user_email}>"
 
     # Stow the Git configuration package
     print_status "Stowing Git configuration..."
