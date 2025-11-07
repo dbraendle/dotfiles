@@ -29,10 +29,12 @@ main() {
     # Check macOS version (minimum 12.0 Monterey)
     local macos_version
     macos_version="$(get_macos_version)"
-    version_compare "${macos_version}" "12.0"
-    local version_result=$?
 
-    if [[ ${version_result} -eq 1 ]]; then
+    # Version compare returns: 0 if equal, 1 if v1 < v2, 2 if v1 > v2
+    # Use '|| true' to prevent set -e from exiting on non-zero return
+    version_compare "${macos_version}" "12.0" || local version_result=$?
+
+    if [[ ${version_result:-0} -eq 1 ]]; then
         print_error "This module requires macOS 12.0 (Monterey) or later"
         print_error "Current version: ${macos_version}"
         return 1
