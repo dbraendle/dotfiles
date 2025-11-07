@@ -82,6 +82,7 @@ Temporary Items
 
 # SSH Keys and Configurations
 ssh/services.json           # Contains real server IPs/users
+services.json               # Services configuration (may contain IPs)
 ssh/id_*                    # Private SSH keys
 ssh/*.key                   # Any key files
 ssh/*.pem                   # Certificate files
