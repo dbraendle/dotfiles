@@ -22,7 +22,6 @@ source "${SCRIPT_DIR}/../../lib/utils.sh"
 declare -a NPM_PACKAGES=(
     "typescript:TypeScript compiler and language support"
     "prettier:Code formatter for JavaScript, CSS, JSON, Markdown, etc"
-    "@anthropic-ai/claude-code:Claude AI coding assistant (legacy npm version)"
 )
 
 #######################################
