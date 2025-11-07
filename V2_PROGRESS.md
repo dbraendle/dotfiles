@@ -1,8 +1,9 @@
 # Dotfiles V2 - Fortschritts-Tracking
 
-**Status:** Phase 1 & 2 zu ~82% ERLEDIGT!
-**Letztes Update:** 2025-11-07 22:30
+**Status:** Phase 1 & 2 zu ~85% ERLEDIGT!
+**Letztes Update:** 2025-11-07 23:00
 **Aktueller Branch:** v2-clean
+**Version:** 2.1.2
 
 ---
 
@@ -109,7 +110,7 @@
 - ✅ .zshrc via Stow verwaltet (config/zsh/.zshrc)
 - ✅ Plugins und Konfiguration
 
-#### Optionale Module - 1 von 9 FERTIG (11%)
+#### Optionale Module - 4 von 9 FERTIG (44%)
 
 **1. Dock-Modul** ✅ KOMPLETT
 - ✅ modules/dock/install.sh
@@ -121,15 +122,49 @@
 - ✅ Unterstützt Apps, Spacers (---), Folders (folder:/path)
 - ✅ Shellcheck-sauber
 
+**2. SSH-Modul** ✅ KOMPLETT
+- ✅ modules/ssh/install.sh
+- ✅ modules/ssh/update.sh
+- ✅ modules/ssh/uninstall.sh
+- ✅ modules/ssh/module.json
+- ✅ modules/ssh/README.md
+- ✅ modules/ssh/services.example.json
+- ✅ config/ssh/.ssh/config.template
+- ✅ Template-basiert für Ansible
+- ✅ Ansible markers (ANSIBLE_MANAGED_HOSTS)
+- ✅ Keine Secrets im Repo
+- ✅ Shellcheck-sauber
+
+**3. Mounts-Modul** ✅ KOMPLETT
+- ✅ modules/mounts/install.sh
+- ✅ modules/mounts/update.sh
+- ✅ modules/mounts/uninstall.sh
+- ✅ modules/mounts/module.json
+- ✅ modules/mounts/README.md
+- ✅ mounts.config.example im Root
+- ✅ NFS/SMB via autofs
+- ✅ Desktop-only profile
+- ✅ Pipe-separated config format
+- ✅ Shellcheck-sauber
+
+**4. Scanner-Modul** ✅ KOMPLETT
+- ✅ modules/scanner/install.sh
+- ✅ modules/scanner/update.sh
+- ✅ modules/scanner/uninstall.sh
+- ✅ modules/scanner/module.json
+- ✅ modules/scanner/README.md
+- ✅ modules/scanner/templates/scan-shortcuts.sh.template
+- ✅ Scanner-Server interaktiv konfiguriert
+- ✅ 5 Shortcuts (document, photo, multipage, test, config)
+- ✅ Desktop-only profile
+- ✅ SANE backend integration
+- ✅ Shellcheck-sauber
+
 **Fehlende optionale Module:**
-- ❌ **mounts** - Netzwerk-Mounts mit autofs (FEHLT KOMPLETT)
-- ❌ **ssh** - SSH-Config (Template, später Ansible) (FEHLT KOMPLETT)
 - ❌ **iterm2** - iTerm2 Config via Stow (FEHLT KOMPLETT)
-- ❌ **alfred** - Alfred Workflows via Stow (FEHLT KOMPLETT)
-- ❌ **printer** - CUPS Drucker-Setup (FEHLT KOMPLETT)
-- ❌ **scanner** - Scanner-Shortcuts (FEHLT KOMPLETT)
-- ❌ **development** - Docker, Dev-Tools (FEHLT KOMPLETT)
-- ❌ **creative** - Fonts, Adobe Settings (FEHLT KOMPLETT)
+- ⏸️ **alfred** - Alfred Workflows via Stow (später klären)
+- ⏸️ **development** - Docker, Dev-Tools (später klären - viel zu besprechen)
+- ⏸️ **creative** - Fonts, Adobe Settings (später klären)
 
 ### Neue Features während Development ✅
 
@@ -182,9 +217,9 @@
 - ✅ Woche 1: Repository-Umstrukturierung (100%)
 - ✅ Woche 2: Kern-Scripts (100%)
 
-### Roadmap Phase 2 (Module): **62% ⚠️**
+### Roadmap Phase 2 (Module): **70% ⚠️**
 - ✅ Woche 3: Essentielle Module (100%)
-- ⚠️ Woche 4: Optionale Module (11% - 1 von 9 Module fertig)
+- ⚠️ Woche 4: Optionale Module (44% - 4 von 9 Module fertig)
 
 ### Roadmap Phase 3 (Homelab): **0% ❌**
 - ❌ Woche 5: Ansible Integration (0%)
@@ -416,8 +451,8 @@ git status
 ## Git Status 📝
 
 **Branch:** v2-clean (NICHT main!)
-**Letzter Commit:** "Fix: Use 'git config' without --global to read included files"
-**Untracked:** services.json (sollte jetzt gelöscht sein)
+**Letzter Commit:** v2.1.2
+**Tags:** v2.0.0, v2.1.0, v2.1.1, v2.1.2
 
 **Wichtig:**
 - Commits gehen zu: github.com/dbraendle/dotfiles
@@ -457,5 +492,5 @@ git status
 3. Implementiere optionale Module (siehe Priorität 1 oben)
 4. Lies DOTFILES_V2_ROADMAP_DE.md Sektion 6 & 16 für Modul-Details
 
-**Dokument-Version:** 2.1 (dock-Modul fertiggestellt)
-**Zuletzt aktualisiert:** 2025-11-07 22:30
+**Dokument-Version:** 2.2 (4 optionale Module fertiggestellt: dock, ssh, mounts, scanner)
+**Zuletzt aktualisiert:** 2025-11-07 23:00
