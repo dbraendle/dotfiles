@@ -335,7 +335,7 @@ EOF
     esac
 
     echo "$SELECTED_PROFILE" > "$PROFILE_FILE"
-    print_success "Using profile: ${SELECTED_PROFILE^}"
+    print_success "Using profile: $(echo "${SELECTED_PROFILE:0:1}" | tr '[:lower:]' '[:upper:]')${SELECTED_PROFILE:1}"
     sleep 1
 
     clear
@@ -346,7 +346,7 @@ EOF
 EOF
 
     echo ""
-    echo "Profile: ${SELECTED_PROFILE^}"
+    echo "Profile: $(echo "${SELECTED_PROFILE:0:1}" | tr '[:lower:]' '[:upper:]')${SELECTED_PROFILE:1}"
     echo ""
 
     cat << EOF
