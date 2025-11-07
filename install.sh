@@ -486,11 +486,23 @@ gather_user_input() {
         echo ""
         print_status "Git Configuration"
 
-        # Get current git config if exists
+        # Get current git config - try .gitconfig.local first (survives dotfiles deletion)
         local current_name
         local current_email
-        current_name=$(git config --global user.name 2>/dev/null || echo "")
-        current_email=$(git config --global user.email 2>/dev/null || echo "")
+
+        # Check .gitconfig.local first (not deleted when dotfiles repo is removed)
+        if [[ -f "${HOME}/.gitconfig.local" ]]; then
+            current_name=$(git config --file="${HOME}/.gitconfig.local" user.name 2>/dev/null || echo "")
+            current_email=$(git config --file="${HOME}/.gitconfig.local" user.email 2>/dev/null || echo "")
+        fi
+
+        # Fallback to global config if .local doesn't have values
+        if [[ -z "$current_name" ]]; then
+            current_name=$(git config --global user.name 2>/dev/null || echo "")
+        fi
+        if [[ -z "$current_email" ]]; then
+            current_email=$(git config --global user.email 2>/dev/null || echo "")
+        fi
 
         if [[ -n "$current_name" ]]; then
             read -erp "Git username [$current_name]: " GIT_USER_NAME

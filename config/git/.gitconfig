@@ -1,7 +1,6 @@
-[user]
-    # User name and email set via install script
-    # Run: git config --global user.name "Your Name"
-    # Run: git config --global user.email "your@email.com"
+# User name and email are set by the install script using:
+# git config --global user.name "Your Name"
+# git config --global user.email "your@email.com"
 
 [core]
     editor = code --wait
@@ -69,3 +68,11 @@
 
 [credential]
     helper = osxkeychain
+
+# Include local/private config (not in repo)
+# This file should contain:
+#   [user]
+#       name = Your Name
+#       email = your@email.com
+[include]
+    path = ~/.gitconfig.local

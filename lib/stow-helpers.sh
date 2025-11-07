@@ -138,13 +138,30 @@ backup_conflicts() {
         # If target exists and is not a symlink to our file, back it up
         if [[ -e "${target}" || -L "${target}" ]]; then
             local source="${package_dir}/${rel_path}"
-            if [[ ! -L "${target}" ]] || [[ "$(readlink "${target}")" != "${source}" ]]; then
-                print_warning "Backing up existing file: ${target}"
-                create_backup "${target}" || return 1
-                # Remove the original file so stow can create symlink
-                rm -rf "${target}"
-                print_debug "Removed ${target} after backup"
+
+            # Check if it's already the correct symlink
+            # Compare resolved paths since readlink may return relative path
+            if [[ -L "${target}" ]]; then
+                local link_target
+                link_target="$(readlink "${target}")"
+                # Resolve to absolute path if relative
+                if [[ "${link_target}" != /* ]]; then
+                    link_target="$(cd "$(dirname "${target}")" && cd "$(dirname "${link_target}")" && pwd)/$(basename "${link_target}")"
+                fi
+
+                # If already correct symlink, skip
+                if [[ "${link_target}" == "${source}" ]]; then
+                    print_debug "Symlink already correct: ${target} -> ${source}"
+                    continue
+                fi
             fi
+
+            # Not a symlink or wrong target - back it up
+            print_warning "Backing up existing file: ${target}"
+            create_backup "${target}" || return 1
+            # Remove the original file so stow can create symlink
+            rm -rf "${target}"
+            print_debug "Removed ${target} after backup"
         fi
     done < <(find "${package_dir}" -type f -print0)
 

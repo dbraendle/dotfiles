@@ -83,21 +83,48 @@ main() {
         return 1
     fi
 
-    # Set user-specific values via git config
-    print_status "Configuring Git user settings..."
+    # Create or update .gitconfig.local with user-specific values
+    # This file is not tracked in the repo and contains personal data
+    local gitconfig_local="${HOME}/.gitconfig.local"
 
-    if git config --global user.name "${git_user_name}"; then
-        print_success "Set Git user.name: ${git_user_name}"
+    # Check if we need to create/update the file
+    local needs_update=false
+    if [[ ! -f "${gitconfig_local}" ]]; then
+        needs_update=true
+        print_status "Creating ${gitconfig_local} with user settings..."
     else
-        print_error "Failed to set Git user.name"
-        return 1
+        # Check if values changed
+        local existing_name
+        local existing_email
+        existing_name=$(git config --file="${gitconfig_local}" user.name 2>/dev/null || echo "")
+        existing_email=$(git config --file="${gitconfig_local}" user.email 2>/dev/null || echo "")
+
+        if [[ "${existing_name}" != "${git_user_name}" ]] || [[ "${existing_email}" != "${git_user_email}" ]]; then
+            needs_update=true
+            print_status "Updating ${gitconfig_local} with new user settings..."
+        else
+            print_success "${gitconfig_local} already up to date"
+        fi
     fi
 
-    if git config --global user.email "${git_user_email}"; then
-        print_success "Set Git user.email: ${git_user_email}"
-    else
-        print_error "Failed to set Git user.email"
-        return 1
+    if [[ "${needs_update}" == "true" ]]; then
+        cat > "${gitconfig_local}" << EOF
+# Local Git configuration (not tracked in dotfiles repo)
+# This file is included by ~/.gitconfig
+
+[user]
+    name = ${git_user_name}
+    email = ${git_user_email}
+EOF
+
+        if [[ -f "${gitconfig_local}" ]]; then
+            print_success "Configured ${gitconfig_local}"
+            print_success "  user.name: ${git_user_name}"
+            print_success "  user.email: ${git_user_email}"
+        else
+            print_error "Failed to create ${gitconfig_local}"
+            return 1
+        fi
     fi
 
     print_success "Git module installation completed"
