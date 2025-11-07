@@ -350,7 +350,10 @@ EOF
         1)
             # Full installation - all modules
             print_status "Full installation selected"
-            mapfile -t SELECTED_MODULES < <(get_available_modules)
+            SELECTED_MODULES=()
+            while IFS= read -r module; do
+                SELECTED_MODULES+=("$module")
+            done < <(get_available_modules)
             ;;
         2)
             # Minimal installation - core modules only
@@ -406,7 +409,10 @@ select_modules_interactively() {
 
     # Get optional modules
     local optional_modules=()
-    mapfile -t all_modules < <(get_available_modules)
+    local all_modules=()
+    while IFS= read -r module; do
+        all_modules+=("$module")
+    done < <(get_available_modules)
 
     for module in "${all_modules[@]}"; do
         # Skip core modules
