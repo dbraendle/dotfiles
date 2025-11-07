@@ -36,13 +36,13 @@ print_success "Firewall enabled"
 print_debug "Configuring password after sleep/screensaver..."
 
 # Check if we're running on a laptop
-local is_laptop_device=false
+is_laptop_device=false
 if is_laptop; then
     is_laptop_device=true
 fi
 
 # Determine password requirement based on profile and device type
-local require_password=false
+require_password=false
 
 if [[ "${is_laptop_device}" == "true" ]]; then
     # Laptops ALWAYS require password after sleep (security critical for portable devices)

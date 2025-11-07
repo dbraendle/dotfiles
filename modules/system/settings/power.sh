@@ -22,7 +22,7 @@ print_status "Configuring power management settings..."
 print_debug "Configuring display sleep..."
 
 # Get display sleep time from profile
-local display_sleep="${DISPLAY_SLEEP_MINUTES:-15}"
+display_sleep="${DISPLAY_SLEEP_MINUTES:-15}"
 
 print_debug "Setting display sleep to ${display_sleep} minutes"
 
@@ -38,7 +38,7 @@ print_success "Display sleep set to ${display_sleep} minutes"
 print_debug "Configuring system sleep..."
 
 # Get system sleep time from profile
-local system_sleep="${SYSTEM_SLEEP_MINUTES:-0}"
+system_sleep="${SYSTEM_SLEEP_MINUTES:-0}"
 
 print_debug "Setting system sleep to ${system_sleep} minutes"
 

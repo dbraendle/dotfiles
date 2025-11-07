@@ -71,8 +71,7 @@ print_success "Autocorrect and smart features disabled"
 
 # Check if running on macOS 15.0 (Tahoe) or later
 if [[ -n "${MACOS_VERSION:-}" ]]; then
-    local version_check
-    version_compare "${MACOS_VERSION}" "15.0"
+    version_compare "${MACOS_VERSION}" "15.0" || true
     version_check=$?
 
     if [[ ${version_check} -eq 0 || ${version_check} -eq 2 ]]; then
