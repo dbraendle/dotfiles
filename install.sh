@@ -304,11 +304,30 @@ show_interactive_menu() {
 EOF
 
     echo ""
-    if [[ "$DETECTED_PROFILE" == "$SELECTED_PROFILE" ]]; then
-        echo "Detected: $(echo "$DETECTED_PROFILE" | sed 's/./\U&/') Profile"
-    else
-        echo "Profile: $(echo "$SELECTED_PROFILE" | sed 's/./\U&/') (Override)"
+    print_status "Detected Profile: $(echo "$SELECTED_PROFILE" | sed 's/./\U&/')"
+    echo ""
+
+    if ! confirm "Use $(echo "$SELECTED_PROFILE" | sed 's/./\U&/') profile?" "y"; then
+        # Switch profile
+        if [[ "$SELECTED_PROFILE" == "laptop" ]]; then
+            SELECTED_PROFILE="desktop"
+        else
+            SELECTED_PROFILE="laptop"
+        fi
+        print_success "Profile changed to: $(echo "$SELECTED_PROFILE" | sed 's/./\U&/')"
+        echo "$SELECTED_PROFILE" > "$PROFILE_FILE"
+        sleep 1
     fi
+
+    clear
+    cat << 'EOF'
+╔════════════════════════════════════════════╗
+║      Dotfiles V2 Installation             ║
+╚════════════════════════════════════════════╝
+EOF
+
+    echo ""
+    echo "Profile: $(echo "$SELECTED_PROFILE" | sed 's/./\U&/')"
     echo ""
 
     cat << EOF
@@ -328,13 +347,11 @@ Installation Options:
 
   [3] Custom - Select Modules Interactively
 
-  [4] Change Profile (Switch to $(if [[ "$SELECTED_PROFILE" == "laptop" ]]; then echo "Desktop"; else echo "Laptop"; fi))
-
   [Q] Quit
 
 EOF
 
-    read -rp "Select option [1-4, Q]: " choice
+    read -rp "Select option [1-3, Q]: " choice
 
     case "$choice" in
         1)
@@ -353,19 +370,6 @@ EOF
         3)
             # Custom module selection
             select_modules_interactively
-            ;;
-        4)
-            # Toggle profile
-            if [[ "$SELECTED_PROFILE" == "laptop" ]]; then
-                SELECTED_PROFILE="desktop"
-            else
-                SELECTED_PROFILE="laptop"
-            fi
-            echo "$SELECTED_PROFILE" > "$PROFILE_FILE"
-            print_success "Profile changed to: $SELECTED_PROFILE"
-            sleep 1
-            show_interactive_menu  # Show menu again
-            return
             ;;
         [Qq])
             print_status "Installation cancelled"
