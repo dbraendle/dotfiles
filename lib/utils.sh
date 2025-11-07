@@ -85,7 +85,8 @@ confirm() {
     fi
 
     # Ask the question (force flush to stderr to ensure prompt appears)
-    printf "%s%s %s%s " "${YELLOW}" "${question}" "${prompt}" "${NC}" >&2
+    # Use %b for color variables to interpret ANSI escape sequences
+    printf "%b%s %s%b " "${YELLOW}" "${question}" "${prompt}" "${NC}" >&2
     read -er answer
 
     # Handle empty answer (use default)
@@ -357,10 +358,11 @@ prompt_input() {
     local user_input
 
     # Build prompt with default if provided (output to stderr so it's not buffered)
+    # Use %b for color variables to interpret ANSI escape sequences
     if [[ -n "${default_value}" ]]; then
-        printf "%s%s [%s]:%s " "${YELLOW:-}" "${prompt_text}" "${default_value}" "${NC:-}" >&2
+        printf "%b%s [%s]:%b " "${YELLOW:-}" "${prompt_text}" "${default_value}" "${NC:-}" >&2
     else
-        printf "%s%s:%s " "${YELLOW:-}" "${prompt_text}" "${NC:-}" >&2
+        printf "%b%s:%b " "${YELLOW:-}" "${prompt_text}" "${NC:-}" >&2
     fi
 
     # Read user input (with readline editing support for arrow keys)
