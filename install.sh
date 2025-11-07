@@ -658,7 +658,8 @@ install_module() {
         module_args=("--profile" "$SELECTED_PROFILE")
     fi
 
-    if "$install_script" "${module_args[@]}"; then
+    # Run install script with args if any (use ${arr[@]+"${arr[@]}"} to avoid unbound variable error)
+    if "$install_script" ${module_args[@]+"${module_args[@]}"}; then
         print_success "Module '$module' installed successfully"
 
         # Add to modules file
