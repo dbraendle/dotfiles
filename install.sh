@@ -304,20 +304,39 @@ show_interactive_menu() {
 EOF
 
     echo ""
-    print_status "Detected Profile: ${SELECTED_PROFILE^}"
+    echo "Select Profile:"
     echo ""
 
-    if ! confirm "Use ${SELECTED_PROFILE^} profile?" "y"; then
-        # Switch profile
-        if [[ "$SELECTED_PROFILE" == "laptop" ]]; then
-            SELECTED_PROFILE="desktop"
-        else
-            SELECTED_PROFILE="laptop"
-        fi
-        print_success "Profile changed to: ${SELECTED_PROFILE^}"
-        echo "$SELECTED_PROFILE" > "$PROFILE_FILE"
-        sleep 1
+    # Show profile options with detected marker
+    if [[ "$SELECTED_PROFILE" == "desktop" ]]; then
+        echo "  [1] Desktop (detected)"
+        echo "  [2] Laptop"
+    else
+        echo "  [1] Desktop"
+        echo "  [2] Laptop (detected)"
     fi
+
+    echo ""
+    read -rp "Select profile [1-2] (default: detected): " profile_choice
+
+    case "$profile_choice" in
+        1)
+            SELECTED_PROFILE="desktop"
+            ;;
+        2)
+            SELECTED_PROFILE="laptop"
+            ;;
+        "")
+            # Keep detected profile
+            ;;
+        *)
+            print_error "Invalid choice, using detected profile"
+            ;;
+    esac
+
+    echo "$SELECTED_PROFILE" > "$PROFILE_FILE"
+    print_success "Using profile: ${SELECTED_PROFILE^}"
+    sleep 1
 
     clear
     cat << 'EOF'
@@ -327,7 +346,7 @@ EOF
 EOF
 
     echo ""
-    echo "Profile: $(echo "$SELECTED_PROFILE" | sed 's/./\U&/')"
+    echo "Profile: ${SELECTED_PROFILE^}"
     echo ""
 
     cat << EOF
