@@ -26,8 +26,10 @@
 #   ./install.sh --profile laptop --yes    # Non-interactive laptop setup
 #   ./install.sh --modules core,terminal   # Install specific modules
 #
-# Author: Daniel Brändle
+# Author: Dennis Brändle <me@dbraendle.com>
+# GitHub: github.com/dbraendle/dotfiles
 # Version: 2.0.0
+# License: MIT
 #######################################
 
 set -euo pipefail
@@ -795,10 +797,21 @@ main() {
     # Print header
     clear
     cat << 'EOF'
-╔════════════════════════════════════════════╗
-║      Dotfiles V2 Installer                ║
-║      Professional macOS Setup             ║
-╚════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║     ____        _    __ _ _             __     ____           ║
+║    |  _ \  ___ | |_ / _(_) | ___  ___  \ \   / /_ )          ║
+║    | | | |/ _ \| __| |_| | |/ _ \/ __|  \ \ / / / /          ║
+║    | |_| | (_) | |_|  _| | |  __/\__ \   \ V / |_|           ║
+║    |____/ \___/ \__|_| |_|_|\___||___/    \_/  (_)           ║
+║                                                               ║
+║   Professional macOS Setup & Configuration System            ║
+║                                                               ║
+║   Version: 2.0.0                                              ║
+║   Author:  Dennis Brändle                                     ║
+║   GitHub:  github.com/dbraendle/dotfiles                      ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
 
 EOF
 
