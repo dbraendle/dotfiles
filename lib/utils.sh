@@ -356,11 +356,11 @@ prompt_input() {
     local default_value="${2:-}"
     local user_input
 
-    # Build prompt with default if provided
+    # Build prompt with default if provided (output to stderr so it's not buffered)
     if [[ -n "${default_value}" ]]; then
-        printf "%s%s [%s]:%s " "${YELLOW:-}" "${prompt_text}" "${default_value}" "${NC:-}"
+        printf "%s%s [%s]:%s " "${YELLOW:-}" "${prompt_text}" "${default_value}" "${NC:-}" >&2
     else
-        printf "%s%s:%s " "${YELLOW:-}" "${prompt_text}" "${NC:-}"
+        printf "%s%s:%s " "${YELLOW:-}" "${prompt_text}" "${NC:-}" >&2
     fi
 
     # Read user input
