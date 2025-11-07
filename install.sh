@@ -702,6 +702,13 @@ install_modules() {
 
         if install_module "$module"; then
             succeeded=$((succeeded + 1))
+
+            # Reload Homebrew environment after homebrew module installation
+            # This ensures subsequent modules can access Homebrew-installed tools
+            if [[ "$module" == "homebrew" ]] && command_exists brew; then
+                print_debug "Reloading Homebrew environment for current session"
+                eval "$(brew shellenv)"
+            fi
         else
             failed=$((failed + 1))
 
@@ -823,6 +830,37 @@ confirm_installation() {
 }
 
 #######################################
+# Setup iCloud / Apple ID
+# Prompts user to configure iCloud for Mac App Store access
+#######################################
+setup_icloud() {
+    if [[ "$AUTO_YES" == "true" ]]; then
+        return 0  # Skip in non-interactive mode
+    fi
+
+    print_section "Apple ID Setup"
+    echo ""
+    print_status "Mac App Store apps require Apple ID sign-in"
+    print_status "This includes: Things 3, Strongbox, DaisyDisk, and more"
+    echo ""
+
+    if confirm "Configure Apple ID now? (Recommended)" "y"; then
+        print_status "Opening System Settings..."
+        open "x-apple.systempreferences:com.apple.preferences.AppleIDPrefPane"
+        echo ""
+        print_warning "Please sign in to Apple ID if not already done"
+        print_status "Then press Enter to continue with installation"
+        read -r
+        echo ""
+        print_success "Continuing with installation..."
+    else
+        print_warning "Skipping Apple ID setup"
+        print_status "Mac App Store apps may fail to install later"
+    fi
+    echo ""
+}
+
+#######################################
 # Main installation flow
 #######################################
 main() {
@@ -883,6 +921,9 @@ EOF
     if ! confirm_installation; then
         exit 0
     fi
+
+    # Setup iCloud / Apple ID
+    setup_icloud
 
     echo ""
     print_status "Starting installation process..."

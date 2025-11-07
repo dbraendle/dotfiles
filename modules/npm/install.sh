@@ -31,6 +31,11 @@ declare -a NPM_PACKAGES=(
 main() {
     print_section "Installing NPM Module"
 
+    # Ensure Homebrew is in PATH (needed after fresh homebrew installation)
+    if command_exists brew; then
+        eval "$(brew shellenv)"
+    fi
+
     # Check if npm is available
     if ! command_exists npm; then
         print_error "npm is not installed"

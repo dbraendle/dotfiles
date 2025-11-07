@@ -120,6 +120,41 @@ main() {
 
         print_status "Found ${brew_count} formulae, ${cask_count} casks, and ${mas_count} Mac App Store apps"
 
+        # Check if iCloud sign-in is needed for Mac App Store apps
+        if [[ ${mas_count} -gt 0 ]]; then
+            print_status "Checking iCloud sign-in status..."
+
+            # Check if signed in to Mac App Store (mas account returns email if signed in)
+            if ! mas account &>/dev/null; then
+                echo ""
+                print_warning "Mac App Store apps require iCloud sign-in"
+                print_status "Found ${mas_count} apps that need Mac App Store access"
+                echo ""
+
+                if confirm "Open App Store to sign in?" "y"; then
+                    print_status "Opening App Store..."
+                    open -a "App Store"
+                    echo ""
+                    print_warning "Please sign in to App Store, then press Enter to continue"
+                    print_status "(Press Ctrl+C to skip Mac App Store apps)"
+                    read -r
+                    echo ""
+
+                    # Verify sign-in was successful
+                    if mas account &>/dev/null; then
+                        print_success "iCloud sign-in confirmed: $(mas account)"
+                    else
+                        print_warning "iCloud sign-in not detected - Mac App Store apps will be skipped"
+                    fi
+                else
+                    print_warning "Skipping iCloud sign-in - Mac App Store apps will fail to install"
+                fi
+            else
+                print_success "Already signed in to Mac App Store: $(mas account)"
+            fi
+            echo ""
+        fi
+
         # Run brew bundle with proper error handling
         if brew bundle install --file="${BREWFILE}"; then
             print_success "All packages installed successfully"
