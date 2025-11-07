@@ -358,9 +358,9 @@ prompt_input() {
 
     # Build prompt with default if provided
     if [[ -n "${default_value}" ]]; then
-        echo -ne "${YELLOW}${prompt_text} [${default_value}]:${NC} "
+        printf "%s%s [%s]:%s " "${YELLOW:-}" "${prompt_text}" "${default_value}" "${NC:-}"
     else
-        echo -ne "${YELLOW}${prompt_text}:${NC} "
+        printf "%s%s:%s " "${YELLOW:-}" "${prompt_text}" "${NC:-}"
     fi
 
     # Read user input
