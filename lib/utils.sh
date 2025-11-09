@@ -416,28 +416,37 @@ get_modules_for_profile() {
             continue
         fi
 
-        # Check if jq is available for JSON parsing
-        if ! command_exists jq; then
-            print_warning "jq not installed, cannot filter by profile. Including all modules."
-            echo "${module_name}"
-            continue
-        fi
+        # Check if jq is available for JSON parsing (preferred method)
+        if command_exists jq; then
+            # Read profiles array from module.json
+            local profiles
+            profiles="$(jq -r '.profiles // [] | .[]' "${module_json}" 2>/dev/null)"
 
-        # Read profiles array from module.json
-        local profiles
-        profiles="$(jq -r '.profiles // [] | .[]' "${module_json}" 2>/dev/null)"
+            # If no profiles defined, module works with all profiles
+            if [[ -z "${profiles}" ]]; then
+                echo "${module_name}"
+                continue
+            fi
 
-        # If no profiles defined, module works with all profiles
-        if [[ -z "${profiles}" ]]; then
-            echo "${module_name}"
-            continue
-        fi
-
-        # Check if current profile is in the list
-        if echo "${profiles}" | grep -q "^${profile}$"; then
-            echo "${module_name}"
+            # Check if current profile is in the list
+            if echo "${profiles}" | grep -q "^${profile}$"; then
+                echo "${module_name}"
+            else
+                print_debug "Skipping ${module_name}: Not compatible with profile '${profile}'"
+            fi
         else
-            print_debug "Skipping ${module_name}: Not compatible with profile '${profile}'"
+            # Fallback: Parse JSON with grep (less robust but works without jq)
+            if grep -q '"profiles"' "${module_json}" 2>/dev/null; then
+                # Has profiles field, check if our profile is in it
+                if grep -q "\"${profile}\"" "${module_json}" 2>/dev/null; then
+                    echo "${module_name}"
+                else
+                    print_debug "Skipping ${module_name}: Not compatible with profile '${profile}' (parsed without jq)"
+                fi
+            else
+                # No profiles field = compatible with all profiles
+                echo "${module_name}"
+            fi
         fi
     done < <(find "${modules_dir}" -mindepth 1 -maxdepth 1 -type d | sort)
 
