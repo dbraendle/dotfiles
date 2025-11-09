@@ -927,7 +927,8 @@ EOF
     fi
 
     # Setup iCloud / Apple ID (do this early so mas apps can install later)
-    setup_icloud
+    # TEMPORARILY DISABLED - focus on getting brew working first
+    # setup_icloud
 
     # Detect hardware profile
     detect_profile
