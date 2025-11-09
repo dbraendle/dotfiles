@@ -381,12 +381,93 @@ version_compare() {
 }
 
 #######################################
+# Get modules compatible with a specific profile
+# Arguments:
+#   $1 - Profile name (e.g., "laptop" or "desktop")
+#   $2 - Modules directory path (optional, defaults to DOTFILES_DIR/modules)
+# Returns:
+#   0 if successful, 1 otherwise
+# Outputs:
+#   Writes list of module names (one per line) that match the profile
+#######################################
+get_modules_for_profile() {
+    local profile="$1"
+    local modules_dir="${2:-${DOTFILES_DIR}/modules}"
+
+    if [[ -z "${profile}" ]]; then
+        print_error "get_modules_for_profile: Profile name required"
+        return 1
+    fi
+
+    if [[ ! -d "${modules_dir}" ]]; then
+        print_error "get_modules_for_profile: Modules directory not found: ${modules_dir}"
+        return 1
+    fi
+
+    # Iterate through all module directories
+    while IFS= read -r module_dir; do
+        local module_name
+        module_name="$(basename "${module_dir}")"
+        local module_json="${module_dir}/module.json"
+
+        # Skip if module.json doesn't exist
+        if [[ ! -f "${module_json}" ]]; then
+            print_debug "Skipping ${module_name}: No module.json found"
+            continue
+        fi
+
+        # Check if jq is available for JSON parsing
+        if ! command_exists jq; then
+            print_warning "jq not installed, cannot filter by profile. Including all modules."
+            echo "${module_name}"
+            continue
+        fi
+
+        # Read profiles array from module.json
+        local profiles
+        profiles="$(jq -r '.profiles // [] | .[]' "${module_json}" 2>/dev/null)"
+
+        # If no profiles defined, module works with all profiles
+        if [[ -z "${profiles}" ]]; then
+            echo "${module_name}"
+            continue
+        fi
+
+        # Check if current profile is in the list
+        if echo "${profiles}" | grep -q "^${profile}$"; then
+            echo "${module_name}"
+        else
+            print_debug "Skipping ${module_name}: Not compatible with profile '${profile}'"
+        fi
+    done < <(find "${modules_dir}" -mindepth 1 -maxdepth 1 -type d | sort)
+
+    return 0
+}
+
+#######################################
 # Check if script is running with sudo/root privileges
 # Returns:
 #   0 if running as root, 1 otherwise
 #######################################
 is_root() {
     [[ "${EUID}" -eq 0 ]]
+}
+
+#######################################
+# Check if current user has administrator privileges
+# Returns:
+#   0 if user is admin, 1 otherwise
+#######################################
+check_admin_rights() {
+    local current_user
+    current_user="$(get_real_user)"
+
+    # Check if user is in admin group (macOS)
+    if groups "${current_user}" 2>/dev/null | grep -q '\badmin\b'; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 #######################################

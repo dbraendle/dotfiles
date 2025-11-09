@@ -375,16 +375,16 @@ EOF
 
     case "$choice" in
         1)
-            # Full installation - all modules
+            # Full installation - all modules compatible with selected profile
             print_status "Full installation selected"
-            # Start with core modules in correct order, then add optional modules
+            # Start with core modules in correct order, then add optional modules for this profile
             SELECTED_MODULES=("${CORE_MODULES[@]}")
             while IFS= read -r module; do
                 # Skip if already in core modules
                 if [[ ! " ${CORE_MODULES[*]} " =~ " ${module} " ]]; then
                     SELECTED_MODULES+=("$module")
                 fi
-            done < <(get_available_modules)
+            done < <(get_modules_for_profile "${SELECTED_PROFILE}")
             ;;
         2)
             # Minimal installation - core modules only
@@ -425,12 +425,12 @@ select_modules_interactively() {
     # Start with core modules
     SELECTED_MODULES=("${CORE_MODULES[@]}")
 
-    # Get optional modules
+    # Get optional modules for selected profile
     local optional_modules=()
     local all_modules=()
     while IFS= read -r module; do
         all_modules+=("$module")
-    done < <(get_available_modules)
+    done < <(get_modules_for_profile "${SELECTED_PROFILE}")
 
     for module in "${all_modules[@]}"; do
         # Skip core modules

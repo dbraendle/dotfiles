@@ -64,6 +64,21 @@ main() {
     else
         print_subsection "Installing Homebrew"
 
+        # Check if user has admin rights (required for Homebrew installation)
+        if ! check_admin_rights; then
+            print_error "Homebrew installation requires administrator privileges"
+            print_error "Current user '$(get_real_user)' is not in the admin group"
+            echo ""
+            print_status "To fix this:"
+            print_status "1. Go to System Settings → Users & Groups"
+            print_status "2. Unlock with your password"
+            print_status "3. Select user '$(get_real_user)' and check 'Allow user to administer this computer'"
+            print_status "4. Log out and log back in"
+            print_status "5. Run this installation again"
+            echo ""
+            return 1
+        fi
+
         # Install Homebrew using official installation script
         print_status "Downloading and running Homebrew installation script..."
         NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
