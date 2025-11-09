@@ -16,7 +16,12 @@ source "${DOTFILES_DIR}/lib/utils.sh"
 
 # Module-specific configuration
 MODULE_NAME="homebrew"
-BREWFILE="${SCRIPT_DIR}/Brewfile"
+# Prefer Brewfile.test if it exists (for quick testing), otherwise use full Brewfile
+if [[ -f "${SCRIPT_DIR}/Brewfile.test" ]]; then
+    BREWFILE="${SCRIPT_DIR}/Brewfile.test"
+else
+    BREWFILE="${SCRIPT_DIR}/Brewfile"
+fi
 
 # Parse command line arguments
 FORCE=0
