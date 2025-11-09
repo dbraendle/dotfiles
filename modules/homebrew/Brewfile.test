@@ -11,6 +11,7 @@ brew "jq"        # JSON processor - required for module.json parsing
 # Essential Tools
 #######################################
 brew "git"       # Version control (may already be installed)
+brew "node"      # Node.js - required for npm module (needed by core modules)
 
 #######################################
 # Test Cask (optional)
