@@ -3,6 +3,10 @@
 # Provides consistent logging output with colors and file logging
 # Usage: source this file after sourcing colors.sh
 
+# Guard: prevent double-sourcing
+[[ -n "${LOGGING_SH_LOADED:-}" ]] && return 0
+LOGGING_SH_LOADED=1
+
 # Get the directory where this library is located (use unique var name to avoid conflicts)
 LOGGING_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

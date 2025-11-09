@@ -3,6 +3,10 @@
 # Provides system detection, file operations, and helper functions
 # Usage: source this file after sourcing logging.sh
 
+# Guard: prevent double-sourcing
+[[ -n "${UTILS_SH_LOADED:-}" ]] && return 0
+UTILS_SH_LOADED=1
+
 # Get the directory where this library is located (use unique var name to avoid conflicts)
 UTILS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
