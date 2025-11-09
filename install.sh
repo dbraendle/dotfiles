@@ -850,6 +850,15 @@ setup_icloud() {
         return 0  # Skip in non-interactive mode
     fi
 
+    # Check if already signed in to App Store
+    if command_exists mas && mas account &>/dev/null; then
+        local account_email
+        account_email=$(mas account)
+        print_success "Already signed in to App Store: ${account_email}"
+        echo ""
+        return 0
+    fi
+
     print_section "Apple ID Setup"
     echo ""
     print_status "Mac App Store apps (Things 3, Strongbox, DaisyDisk, etc.) require Apple ID"
