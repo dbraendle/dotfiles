@@ -1,9 +1,9 @@
 # Dotfiles V2 - Fortschritts-Tracking
 
 **Status:** Phase 1 & 2 zu ~85% ERLEDIGT!
-**Letztes Update:** 2025-11-07 23:00
+**Letztes Update:** 2025-11-09 12:00
 **Aktueller Branch:** v2-clean
-**Version:** 2.1.2
+**Version:** 2.1.3
 
 ---
 
@@ -486,11 +486,50 @@ git status
 
 ---
 
+## Version History
+
+### v2.1.3 (2025-11-09) - Big Sur Compatibility & Profile Filtering
+**Bugfixes nach Big Sur VM Test (7/9 Module schlugen fehl):**
+
+**Root Causes identifiziert:**
+- system Modul blockierte Big Sur (required Monterey 12.0+)
+- homebrew Modul prüfte keine Admin-Rechte → NONINTERACTIVE=1 schlug fehl
+- install.sh bot desktop-only Module auf Laptops an
+- Domino-Effekt: Homebrew fehlgeschlagen → stow/dockutil fehlen → 7/9 Module scheitern
+
+**Fixes implementiert:**
+1. **modules/system/install.sh**: Minimum macOS 12.0 → 11.0 (Big Sur Support)
+2. **modules/homebrew/install.sh**: Admin-Rechte-Check VOR Installation + hilfreiche Anleitung
+3. **lib/utils.sh**:
+   - Neue Funktion: `check_admin_rights()` - prüft ob User in admin group
+   - Neue Funktion: `get_modules_for_profile(profile)` - filtert Module nach Profil
+4. **install.sh**: Profile-Filterung in Full Installation & Custom Selection
+
+**Erwartetes Ergebnis:**
+- Big Sur (11.7.10): ✅ system Modul funktioniert
+- Non-Admin User: ✅ Klare Fehlermeldung + Anleitung
+- Laptop Profil: ✅ Keine desktop-only Module (mounts/scanner)
+- Admin User: ✅ Homebrew installiert → alle Dependencies verfügbar
+
+**Files geändert:** 4 files, 104 insertions(+), 8 deletions(-)
+**Commit:** 0f5e401
+
+### v2.1.2 (2025-11-07) - Scanner Modul
+- scanner Modul hinzugefügt (Desktop-only)
+
+### v2.1.1 (2025-11-07) - Mounts Modul
+- mounts Modul hinzugefügt (Desktop-only, NFS/SMB via autofs)
+
+### v2.1.0 (2025-11-07) - Dock Modul
+- dock Modul hinzugefügt (dockutil-basiert)
+
+---
+
 **WICHTIG für nächste Session:**
 1. Lies diese Datei ZUERST
 2. Teste manage.sh und update.sh (existieren, aber ungetestet!)
 3. Implementiere optionale Module (siehe Priorität 1 oben)
 4. Lies DOTFILES_V2_ROADMAP_DE.md Sektion 6 & 16 für Modul-Details
 
-**Dokument-Version:** 2.2 (4 optionale Module fertiggestellt: dock, ssh, mounts, scanner)
-**Zuletzt aktualisiert:** 2025-11-07 23:00
+**Dokument-Version:** 2.3 (Big Sur Compatibility + Profile Filtering)
+**Zuletzt aktualisiert:** 2025-11-09 12:00
