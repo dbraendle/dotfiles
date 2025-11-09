@@ -850,11 +850,18 @@ setup_icloud() {
         return 0  # Skip in non-interactive mode
     fi
 
-    # Check if already signed in to App Store
-    if command_exists mas && mas account &>/dev/null; then
-        local account_email
-        account_email=$(mas account)
-        print_success "Already signed in to App Store: ${account_email}"
+    # Check if already signed in to Apple ID (iCloud) on macOS
+    # This checks the system-wide Apple ID login, not just App Store
+    if defaults read MobileMeAccounts Accounts &>/dev/null 2>&1; then
+        # Extract account info if possible
+        local account_info
+        account_info=$(defaults read MobileMeAccounts Accounts 2>/dev/null | grep -o 'AccountDescription = "[^"]*"' | head -1 | sed 's/AccountDescription = "\(.*\)"/\1/')
+
+        if [[ -n "${account_info}" ]]; then
+            print_success "Already signed in to Apple ID: ${account_info}"
+        else
+            print_success "Already signed in to Apple ID (iCloud enabled)"
+        fi
         echo ""
         return 0
     fi
