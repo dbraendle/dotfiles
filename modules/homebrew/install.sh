@@ -138,6 +138,11 @@ main() {
         cask_count=$(grep -c '^cask ' "${BREWFILE}" 2>/dev/null || echo "0")
         mas_count=$(grep -c '^mas ' "${BREWFILE}" 2>/dev/null || echo "0")
 
+        # Trim any whitespace/newlines
+        brew_count=$(echo "${brew_count}" | tr -d '\n\r ')
+        cask_count=$(echo "${cask_count}" | tr -d '\n\r ')
+        mas_count=$(echo "${mas_count}" | tr -d '\n\r ')
+
         print_status "Found ${brew_count} formulae, ${cask_count} casks, and ${mas_count} Mac App Store apps"
 
         # Check App Store sign-in for mas apps
