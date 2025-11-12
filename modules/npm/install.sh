@@ -30,9 +30,12 @@ declare -a NPM_PACKAGES=(
 main() {
     print_section "Installing NPM Module"
 
-    # Ensure Homebrew is in PATH (needed after fresh homebrew installation)
-    if command_exists brew; then
-        eval "$(brew shellenv)"
+    # Ensure Homebrew is in PATH (CRITICAL after fresh homebrew installation)
+    # Try to load brew even if command_exists fails (shell cache issue)
+    if [[ -x "/opt/homebrew/bin/brew" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -x "/usr/local/bin/brew" ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
     fi
 
     # Check if npm is available
