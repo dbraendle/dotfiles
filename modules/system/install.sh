@@ -84,33 +84,33 @@ main() {
     export PROFILE_NAME="${profile}"
     export MACOS_VERSION="${macos_version}"
 
-    # Run all settings scripts
+    # Run all Macfile settings scripts from repository root
     print_subsection "Applying System Settings"
 
-    local settings_dir="${SCRIPT_DIR}/settings"
-    local settings_scripts=(
-        "finder.sh"
-        "keyboard.sh"
-        "trackpad.sh"
-        "security.sh"
-        "performance.sh"
-        "power.sh"
+    local macfiles=(
+        "Macfile_finder.sh"
+        "Macfile_keyboard.sh"
+        "Macfile_trackpad.sh"
+        "Macfile_security.sh"
+        "Macfile_performance.sh"
+        "Macfile_power.sh"
     )
 
     local failed=0
-    for script in "${settings_scripts[@]}"; do
-        local script_path="${settings_dir}/${script}"
+    for macfile in "${macfiles[@]}"; do
+        local macfile_path="${DOTFILES_ROOT}/${macfile}"
 
-        if [[ ! -f "${script_path}" ]]; then
-            print_warning "Settings script not found: ${script}"
+        if [[ ! -f "${macfile_path}" ]]; then
+            print_warning "Macfile not found: ${macfile}"
+            print_status "  This is optional - you can create it later if needed"
             continue
         fi
 
-        print_status "Running ${script}..."
-        if bash "${script_path}"; then
-            print_success "Completed ${script}"
+        print_status "Running ${macfile}..."
+        if bash "${macfile_path}"; then
+            print_success "Completed ${macfile}"
         else
-            print_error "Failed to run ${script}"
+            print_error "Failed to run ${macfile}"
             ((failed++))
         fi
     done
@@ -143,13 +143,15 @@ main() {
         print_status "Profile: ${profile}"
         print_status "macOS version: ${macos_version}"
         echo ""
-        print_status "Settings applied:"
-        echo "  • Finder: All bars visible, list view, current folder search"
-        echo "  • Keyboard: Fast repeat, autocorrect disabled"
-        echo "  • Trackpad: Tap-to-click enabled"
-        echo "  • Security: Firewall enabled, profile-aware password settings"
-        echo "  • Performance: Faster animations"
-        echo "  • Power: Profile-aware sleep settings"
+        print_status "Macfile settings applied:"
+        echo "  • Macfile_finder.sh: All bars visible, list view, current folder search"
+        echo "  • Macfile_keyboard.sh: Fast repeat, autocorrect disabled"
+        echo "  • Macfile_trackpad.sh: Tap-to-click enabled"
+        echo "  • Macfile_security.sh: Firewall enabled, profile-aware password settings"
+        echo "  • Macfile_performance.sh: Faster animations"
+        echo "  • Macfile_power.sh: Profile-aware sleep settings"
+        echo ""
+        print_status "Tip: Customize these files in ${DOTFILES_ROOT}/Macfile_*.sh"
     else
         print_warning "Installation completed with ${failed} error(s)"
         print_warning "Check the log file for details: ${LOG_FILE}"

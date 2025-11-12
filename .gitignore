@@ -88,10 +88,8 @@ ssh/*.key                   # Any key files
 ssh/*.pem                   # Certificate files
 .ssh-services.json          # SSH services config
 
-# User-specific Configuration Files (created from .example files)
-Brewfile                    # User's app/package selection (created from Brewfile.example)
-Dockfile                    # User's Dock layout (created from Dockfile.example)
-Mountfile                   # User's network mounts (created from Mountfile.example)
+# Sensitive Configuration Files
+Mountfile                   # User's network mounts (may contain server IPs/shares)
 
 # Legacy mount configs
 *.mount                     # Mount configurations

@@ -203,78 +203,61 @@ detect_profile() {
 }
 
 #######################################
-# Check and create user config files from .example templates
-# Creates Brewfile, Dockfile, Mountfile if they don't exist
+# Check and create Mountfile from template if needed
+# Only Mountfile is gitignored (contains sensitive server IPs)
 # Returns:
 #   0 if successful, 1 otherwise
 #######################################
 check_config_files() {
     print_section "Checking Configuration Files"
 
-    local files_created=0
-    local config_files=(
-        "Brewfile:Brewfile.example:Apps and packages to install"
-        "Dockfile:Dockfile.example:Dock layout configuration"
-        "Mountfile:Mountfile.example:Network mounts (NFS/SMB)"
-    )
+    local mountfile="${DOTFILES_DIR}/Mountfile"
+    local mountfile_example="${DOTFILES_DIR}/Mountfile.example"
 
-    # Check each config file
-    for config_entry in "${config_files[@]}"; do
-        IFS=':' read -r config_file example_file description <<< "$config_entry"
+    # Check if Mountfile exists
+    if [[ ! -f "${mountfile}" ]]; then
+        print_warning "Mountfile not found (optional)"
 
-        local config_path="${DOTFILES_DIR}/${config_file}"
-        local example_path="${DOTFILES_DIR}/${example_file}"
+        if [[ ! -f "${mountfile_example}" ]]; then
+            print_warning "Mountfile.example not found - skipping mounts configuration"
+            print_status "You can configure network mounts later if needed"
+            echo ""
+            return 0
+        fi
 
-        if [[ ! -f "${config_path}" ]]; then
-            print_warning "${config_file} not found"
+        print_status "Creating Mountfile from template..."
+        if cp "${mountfile_example}" "${mountfile}"; then
+            print_success "Created: ${mountfile}"
+            echo ""
+            print_warning "⚠️  Mountfile contains example data"
+            print_status "Edit ${mountfile} to add your network shares (NFS/SMB)"
+            print_status "This file is gitignored to protect server IPs/paths"
+            echo ""
 
-            if [[ ! -f "${example_path}" ]]; then
-                print_error "Example file not found: ${example_file}"
-                print_error "Cannot create ${config_file}"
-                return 1
-            fi
-
-            print_status "Creating ${config_file} from ${example_file}..."
-            if cp "${example_path}" "${config_path}"; then
-                print_success "Created: ${config_path}"
-                print_debug "  Purpose: ${description}"
-                files_created=$((files_created + 1))
-            else
-                print_error "Failed to create ${config_file}"
-                return 1
+            if [[ "$AUTO_YES" == "false" ]]; then
+                print_status "Press Enter to continue (you can configure mounts later)..."
+                read -erp ""
             fi
         else
-            print_success "${config_file} exists"
+            print_error "Failed to create Mountfile"
+            return 1
         fi
-    done
+    else
+        print_success "Mountfile exists"
+    fi
 
-    # If files were created, prompt user to customize them
-    if [[ ${files_created} -gt 0 ]]; then
-        echo ""
-        print_section "⚠️  ACTION REQUIRED: Customize Your Configuration Files"
-        echo ""
-        print_status "The following configuration files have been created from templates:"
-        echo ""
+    # Check main config files are present (should be in repo)
+    local missing_files=()
+    [[ ! -f "${DOTFILES_DIR}/Brewfile" ]] && missing_files+=("Brewfile")
+    [[ ! -f "${DOTFILES_DIR}/Dockfile" ]] && missing_files+=("Dockfile")
 
-        [[ -f "${DOTFILES_DIR}/Brewfile" ]] && print_status "  • Brewfile    - Add/remove apps you want installed"
-        [[ -f "${DOTFILES_DIR}/Dockfile" ]] && print_status "  • Dockfile    - Configure your Dock layout"
-        [[ -f "${DOTFILES_DIR}/Mountfile" ]] && print_status "  • Mountfile   - Add your NFS/SMB shares (optional)"
-
-        echo ""
-        print_status "These files are now in: ${DOTFILES_DIR}/"
-        print_status "They are gitignored and won't be overwritten by 'git pull'"
-        echo ""
-
-        if [[ "$AUTO_YES" == "false" ]]; then
-            print_warning "Please customize these files for your setup before continuing."
-            print_status "You can edit them now or press Enter to use the defaults."
-            echo ""
-            read -erp "Press Enter when you're done customizing (or to use defaults)... "
-            echo ""
-            print_success "Continuing with installation..."
-        else
-            print_status "Running in non-interactive mode, using default configurations"
-        fi
+    if [[ ${#missing_files[@]} -gt 0 ]]; then
+        print_error "Required configuration files missing:"
+        for file in "${missing_files[@]}"; do
+            print_error "  - ${file}"
+        done
+        print_error "These files should be in the repository"
+        return 1
     fi
 
     echo ""
