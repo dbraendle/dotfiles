@@ -110,7 +110,8 @@ Examples:
 
 Core Modules (always available):
   system      - macOS system settings and preferences
-  homebrew    - Homebrew package manager and packages
+  homebrew    - Homebrew package manager and packages (profile-aware)
+  npm         - Node.js global packages (TypeScript, Prettier, etc.)
   terminal    - Zsh, Oh My Zsh, and terminal configuration
   git         - Git configuration and aliases
 
@@ -445,7 +446,16 @@ select_modules_interactively() {
 
     echo "Core modules (always installed):"
     for module in "${CORE_MODULES[@]}"; do
-        echo "  ✓ $module"
+        # Add profile-specific description for homebrew
+        if [[ "$module" == "homebrew" ]]; then
+            if [[ "${SELECTED_PROFILE}" == "laptop" ]]; then
+                echo "  ✓ $module (Core apps only - lean laptop setup)"
+            else
+                echo "  ✓ $module (Core + Desktop power tools)"
+            fi
+        else
+            echo "  ✓ $module"
+        fi
     done
     echo ""
 
