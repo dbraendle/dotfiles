@@ -140,46 +140,23 @@ main() {
 
         print_status "Found ${brew_count} formulae, ${cask_count} casks, and ${mas_count} Mac App Store apps"
 
-        # Check App Store sign-in for mas apps
+        # Info about Mac App Store apps (don't block on sign-in check)
         local use_brewfile="${BREWFILE}"
         if [[ ${mas_count} -gt 0 ]]; then
-            if mas account &>/dev/null; then
-                print_success "App Store signed in: $(mas account)"
-                echo ""
+            echo ""
+            print_status "${mas_count} Mac App Store apps will be installed"
+            print_status "Note: App Store sign-in required for mas apps to succeed"
+
+            # Try to show account if available
+            local mas_email
+            mas_email=$(mas account 2>/dev/null || echo "")
+            if [[ -n "$mas_email" ]]; then
+                print_success "App Store account: $mas_email"
             else
-                # Not signed in - last chance to sign in or skip mas apps
-                echo ""
-                print_warning "Not signed in to App Store"
-                print_status "${mas_count} App Store apps will fail without sign-in"
-                echo ""
-
-                if confirm "Open App Store to sign in now?" "y"; then
-                    print_status "Opening App Store..."
-                    open -a "App Store"
-                    echo ""
-                    print_warning "Please sign in to App Store, then press Enter to continue"
-                    read -r
-                    echo ""
-
-                    # Check if signed in now
-                    if mas account &>/dev/null; then
-                        print_success "App Store signed in: $(mas account)"
-                    else
-                        print_warning "Still not signed in - Mac App Store apps will be skipped"
-                        # Create temporary Brewfile without mas entries
-                        use_brewfile="${BREWFILE}.tmp"
-                        grep -v "^mas " "${BREWFILE}" > "${use_brewfile}"
-                        print_debug "Created temporary Brewfile without mas apps: ${use_brewfile}"
-                    fi
-                else
-                    print_status "Skipping App Store apps"
-                    # Create temporary Brewfile without mas entries
-                    use_brewfile="${BREWFILE}.tmp"
-                    grep -v "^mas " "${BREWFILE}" > "${use_brewfile}"
-                    print_debug "Created temporary Brewfile without mas apps: ${use_brewfile}"
-                fi
-                echo ""
+                print_warning "Could not verify App Store sign-in status"
+                print_status "If mas apps fail, sign in to App Store and re-run"
             fi
+            echo ""
         fi
 
         # Export profile for Brewfile conditionals (used by Ruby in Brewfile)
