@@ -99,7 +99,6 @@ cask "stats"                    # Free system monitoring (alternative to iStat M
 cask "spotify"                  # Music streaming
 cask "vlc"                      # Media player
 cask "downie"                   # Video downloader
-cask "audiobook-builder"        # Audiobook creation
 
 #######################################
 # Scanner Software
@@ -168,14 +167,17 @@ if profile == 'desktop'
   cask "utm"                      # Virtual machine manager (resource intensive)
   cask "ankerwork"                # Video conferencing (desktop setup)
   # mas "Xcode", id: 497799835    # Apple's development environment (15+ GB)
+  cask "tunnelblick"              # OpenVPN client (for travel/mobile)
+  cask "balenaetcher"             # OS image flasher (USB workflow)
+  cask "audiobook-builder"        # Audiobook creation
+
 end
 
 #######################################
 # Laptop Only Apps
 #######################################
 if profile == 'laptop'
-  cask "tunnelblick"              # OpenVPN client (for travel/mobile)
-  cask "balenaetcher"             # OS image flasher (USB workflow)
+
 end
 
 #######################################
