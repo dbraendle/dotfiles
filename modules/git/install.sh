@@ -21,6 +21,14 @@ source "${SCRIPT_DIR}/../../lib/stow-helpers.sh"
 main() {
     print_section "Installing Git Module"
 
+    # Ensure Homebrew is in PATH (needed to check for and install stow)
+    # Direct binary check to avoid shell cache issues
+    if [[ -x "/opt/homebrew/bin/brew" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -x "/usr/local/bin/brew" ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
+
     # Check if Git is installed
     if ! command_exists git; then
         print_error "Git is not installed"

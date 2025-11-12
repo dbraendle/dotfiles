@@ -22,6 +22,14 @@ source "${DOTFILES_DIR}/lib/stow-helpers.sh"
 main() {
     print_section "Terminal Module Installation"
 
+    # Ensure Homebrew is in PATH (needed to check for stow)
+    # Direct binary check to avoid shell cache issues
+    if [[ -x "/opt/homebrew/bin/brew" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -x "/usr/local/bin/brew" ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
+
     # Step 1: Install Oh My Zsh if not already installed
     if [[ ! -d "${HOME}/.oh-my-zsh" ]]; then
         print_status "Installing Oh My Zsh..."
