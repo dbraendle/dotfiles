@@ -16,7 +16,7 @@
   "requires": {
     "commands": ["ssh"]
   },
-  "optional": false,
-  "enabled_by_default": true,
+  "optional": true,
+  "enabled_by_default": false,
   "tags": ["ssh", "network", "security"]
 }
