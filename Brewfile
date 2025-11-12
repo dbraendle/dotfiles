@@ -136,22 +136,24 @@ cask "knockknock"               # See what's persistently installed on your Mac 
 # Use 'mas search "app name"' to find App IDs
 
 # Productivity & Office
-mas "Pages", id: 409201541       # Apple's word processor
-mas "Numbers", id: 409203825     # Apple's spreadsheet app
-mas "Keynote", id: 409183694     # Apple's presentation app
-mas "Things 3", id: 904280696    # Task management app
+# DISABLED: mas has compatibility issues on newer macOS versions (macOS 15+)
+# Install these manually from the App Store until mas is updated
+# mas "Pages", id: 409201541       # Apple's word processor
+# mas "Numbers", id: 409203825     # Apple's spreadsheet app
+# mas "Keynote", id: 409183694     # Apple's presentation app
+# mas "Things 3", id: 904280696    # Task management app
 
 # Password Management
-mas "Strongbox", id: 897283731   # KeePass password manager
-mas "Bitwarden", id: 1352778147  # Password manager
+# mas "Strongbox", id: 897283731   # KeePass password manager
+# mas "Bitwarden", id: 1352778147  # Password manager
 
 # Utilities
-mas "DaisyDisk", id: 411643860   # Disk space analyzer
+# mas "DaisyDisk", id: 411643860   # Disk space analyzer
 
 # Safari Extensions & Ad Blockers
-mas "1Blocker", id: 1365531024        # Safari ad blocker with customization
-mas "AdGuard for Safari", id: 1440147259  # Premium ad blocker, best performance
-mas "Hush", id: 1544743900            # Safari extension to block cookie banners
+# mas "1Blocker", id: 1365531024        # Safari ad blocker with customization
+# mas "AdGuard for Safari", id: 1440147259  # Premium ad blocker, best performance
+# mas "Hush", id: 1544743900            # Safari extension to block cookie banners
 
 #######################################
 # Mac App Store - Optional
