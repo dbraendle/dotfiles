@@ -203,6 +203,85 @@ detect_profile() {
 }
 
 #######################################
+# Check and create user config files from .example templates
+# Creates Brewfile, Dockfile, Mountfile if they don't exist
+# Returns:
+#   0 if successful, 1 otherwise
+#######################################
+check_config_files() {
+    print_section "Checking Configuration Files"
+
+    local files_created=0
+    local config_files=(
+        "Brewfile:Brewfile.example:Apps and packages to install"
+        "Dockfile:Dockfile.example:Dock layout configuration"
+        "Mountfile:Mountfile.example:Network mounts (NFS/SMB)"
+    )
+
+    # Check each config file
+    for config_entry in "${config_files[@]}"; do
+        IFS=':' read -r config_file example_file description <<< "$config_entry"
+
+        local config_path="${DOTFILES_DIR}/${config_file}"
+        local example_path="${DOTFILES_DIR}/${example_file}"
+
+        if [[ ! -f "${config_path}" ]]; then
+            print_warning "${config_file} not found"
+
+            if [[ ! -f "${example_path}" ]]; then
+                print_error "Example file not found: ${example_file}"
+                print_error "Cannot create ${config_file}"
+                return 1
+            fi
+
+            print_status "Creating ${config_file} from ${example_file}..."
+            if cp "${example_path}" "${config_path}"; then
+                print_success "Created: ${config_path}"
+                print_debug "  Purpose: ${description}"
+                files_created=$((files_created + 1))
+            else
+                print_error "Failed to create ${config_file}"
+                return 1
+            fi
+        else
+            print_success "${config_file} exists"
+        fi
+    done
+
+    # If files were created, prompt user to customize them
+    if [[ ${files_created} -gt 0 ]]; then
+        echo ""
+        print_section "⚠️  ACTION REQUIRED: Customize Your Configuration Files"
+        echo ""
+        print_status "The following configuration files have been created from templates:"
+        echo ""
+
+        [[ -f "${DOTFILES_DIR}/Brewfile" ]] && print_status "  • Brewfile    - Add/remove apps you want installed"
+        [[ -f "${DOTFILES_DIR}/Dockfile" ]] && print_status "  • Dockfile    - Configure your Dock layout"
+        [[ -f "${DOTFILES_DIR}/Mountfile" ]] && print_status "  • Mountfile   - Add your NFS/SMB shares (optional)"
+
+        echo ""
+        print_status "These files are now in: ${DOTFILES_DIR}/"
+        print_status "They are gitignored and won't be overwritten by 'git pull'"
+        echo ""
+
+        if [[ "$AUTO_YES" == "false" ]]; then
+            print_warning "Please customize these files for your setup before continuing."
+            print_status "You can edit them now or press Enter to use the defaults."
+            echo ""
+            read -erp "Press Enter when you're done customizing (or to use defaults)... "
+            echo ""
+            print_success "Continuing with installation..."
+        else
+            print_status "Running in non-interactive mode, using default configurations"
+        fi
+    fi
+
+    echo ""
+    return 0
+}
+
+#######################################
 # Check for required prerequisites
 # Returns:
 #   0 if all prerequisites met, 1 otherwise
@@ -911,6 +990,16 @@ EOF
     print_status "Log file: $LOG_FILE"
     echo ""
 
+    # Detect hardware profile (needed for profile-based config files)
+    detect_profile
+
+    # Check and create user config files from .example templates
+    if ! check_config_files; then
+        print_error "Configuration files check failed"
+        print_error "Please resolve issues and try again"
+        exit 1
+    fi
+
     # Check prerequisites
     if ! check_prerequisites; then
         print_error "Prerequisites check failed"
@@ -920,9 +1009,6 @@ EOF
 
     # Setup iCloud / Apple ID (do this early so mas apps can install later)
     setup_icloud
-
-    # Detect hardware profile
-    detect_profile
 
     # Interactive menu or use provided modules
     if [[ "$INTERACTIVE" == "true" ]] && [[ ${#SELECTED_MODULES[@]} -eq 0 ]]; then

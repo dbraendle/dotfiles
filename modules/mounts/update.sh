@@ -17,7 +17,7 @@ source "${SCRIPT_DIR}/../../lib/utils.sh"
 #######################################
 # Configuration paths
 #######################################
-MOUNTS_CONFIG="${DOTFILES_ROOT}/mounts.config"
+MOUNTS_CONFIG="${DOTFILES_ROOT}/Mountfile"
 
 #######################################
 # Main update function

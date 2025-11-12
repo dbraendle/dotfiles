@@ -175,7 +175,7 @@ main() {
     echo ""
     print_status "Notes:"
     print_status "  - Mount point directories were not removed"
-    print_status "  - Your mounts.config file was preserved"
+    print_status "  - Your Mountfile was preserved"
     print_status "  - Backups can be used to restore configuration if needed"
 }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # update.sh - Dock module update script
-# Re-configures macOS Dock with current settings from dock-apps.txt
+# Re-configures macOS Dock with current settings from Dockfile
 
 set -e
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install.sh - Dock module installation script
-# Configures macOS Dock with apps from dock-apps.txt
+# Configures macOS Dock with apps from Dockfile
 
 set -e
 
@@ -17,8 +17,8 @@ source "${SCRIPT_DIR}/../../lib/utils.sh"
 # Configuration
 #######################################
 
-# Path to dock-apps.txt in repository root
-DOCK_APPS_FILE="${SCRIPT_DIR}/../../dock-apps.txt"
+# Path to Dockfile in repository root
+DOCK_APPS_FILE="${SCRIPT_DIR}/../../Dockfile"
 
 #######################################
 # Helper Functions
@@ -244,12 +244,12 @@ main() {
 
     # Check if configuration file exists
     if [[ ! -f "$DOCK_APPS_FILE" ]]; then
-        print_error "dock-apps.txt not found at: $DOCK_APPS_FILE"
+        print_error "Dockfile not found at: $DOCK_APPS_FILE"
         print_status "Please create this file in the repository root"
         return 1
     fi
 
-    print_success "Found dock-apps.txt"
+    print_success "Found Dockfile"
     echo ""
 
     # Ask for confirmation before clearing Dock
@@ -268,7 +268,7 @@ main() {
     if configure_dock "$DOCK_APPS_FILE"; then
         echo ""
         print_success "Dock module installation completed"
-        print_status "Your Dock has been configured according to dock-apps.txt"
+        print_status "Your Dock has been configured according to Dockfile"
     else
         print_error "Dock configuration failed"
         return 1

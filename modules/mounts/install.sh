@@ -17,8 +17,8 @@ source "${SCRIPT_DIR}/../../lib/utils.sh"
 #######################################
 # Configuration paths
 #######################################
-MOUNTS_CONFIG="${DOTFILES_ROOT}/mounts.config"
-MOUNTS_CONFIG_EXAMPLE="${DOTFILES_ROOT}/mounts.config.example"
+MOUNTS_CONFIG="${DOTFILES_ROOT}/Mountfile"
+MOUNTS_CONFIG_EXAMPLE="${DOTFILES_ROOT}/Mountfile.example"
 
 AUTO_MASTER="/etc/auto_master"
 AUTO_NFS="/etc/auto_nfs"
