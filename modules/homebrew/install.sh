@@ -16,7 +16,7 @@ source "${DOTFILES_DIR}/lib/utils.sh"
 
 # Module-specific configuration
 MODULE_NAME="homebrew"
-BREWFILE="${SCRIPT_DIR}/Brewfile"
+BREWFILE="${DOTFILES_DIR}/Brewfile"  # User-editable config in root
 
 # Parse command line arguments
 FORCE=0
