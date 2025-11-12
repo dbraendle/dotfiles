@@ -184,7 +184,13 @@ main() {
 
         # Export profile for Brewfile conditionals (used by Ruby in Brewfile)
         # SELECTED_PROFILE is set by install.sh (desktop/laptop)
-        export DOTFILES_PROFILE="${SELECTED_PROFILE:-desktop}"
+        if [[ -z "${SELECTED_PROFILE}" ]]; then
+            print_error "SELECTED_PROFILE is not set - this is a bug!"
+            print_error "Cannot determine which apps to install"
+            return 1
+        fi
+
+        export DOTFILES_PROFILE="${SELECTED_PROFILE}"
         print_status "Using profile: ${DOTFILES_PROFILE}"
         echo ""
 
