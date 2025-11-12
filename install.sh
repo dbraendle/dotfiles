@@ -851,17 +851,9 @@ setup_icloud() {
     fi
 
     # Check if already signed in to Apple ID (iCloud) on macOS
-    # This checks the system-wide Apple ID login, not just App Store
+    # This checks the system-wide Apple ID login (System Settings → Apple ID)
     if defaults read MobileMeAccounts Accounts &>/dev/null 2>&1; then
-        # Extract account info if possible
-        local account_info
-        account_info=$(defaults read MobileMeAccounts Accounts 2>/dev/null | grep -o 'AccountDescription = "[^"]*"' | head -1 | sed 's/AccountDescription = "\(.*\)"/\1/')
-
-        if [[ -n "${account_info}" ]]; then
-            print_success "Already signed in to Apple ID: ${account_info}"
-        else
-            print_success "Already signed in to Apple ID (iCloud enabled)"
-        fi
+        print_success "Already signed in to iCloud"
         echo ""
         return 0
     fi
@@ -927,8 +919,7 @@ EOF
     fi
 
     # Setup iCloud / Apple ID (do this early so mas apps can install later)
-    # TEMPORARILY DISABLED - focus on getting brew working first
-    # setup_icloud
+    setup_icloud
 
     # Detect hardware profile
     detect_profile
