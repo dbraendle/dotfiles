@@ -43,9 +43,12 @@ is_apple_silicon() {
 #######################################
 is_laptop() {
     if is_macos; then
-        local model
-        model="$(sysctl -n hw.model 2>/dev/null)"
-        [[ "${model}" =~ ^MacBook ]]
+        # Use system_profiler for accurate detection on Apple Silicon
+        local model_name
+        model_name="$(system_profiler SPHardwareDataType 2>/dev/null | grep "Model Name" | awk -F': ' '{print $2}')"
+
+        # Check if it's a MacBook (Air, Pro) or iMac/Mac mini/Mac Studio/Mac Pro
+        [[ "${model_name}" =~ MacBook ]]
     else
         return 1
     fi
