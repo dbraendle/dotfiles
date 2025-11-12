@@ -110,11 +110,11 @@ add_to_dock() {
             fi
             ;;
         "spacer")
-            if dockutil --add '' --type spacer --section apps --no-restart >/dev/null 2>&1; then
-                print_success "  Added: spacer"
+            if dockutil --add '' --type small-spacer-tile --section apps --no-restart >/dev/null 2>&1; then
+                print_success "  Added: small spacer"
                 return 0
             else
-                print_warning "  Failed to add spacer"
+                print_warning "  Failed to add small spacer"
                 return 1
             fi
             ;;
