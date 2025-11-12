@@ -1,6 +1,10 @@
 # Brewfile - Developer Essentials + Utilities
 # Usage: brew bundle install --file=modules/homebrew/Brewfile
 #
+# Profile Support:
+#   This Brewfile supports desktop/laptop profiles via DOTFILES_PROFILE env var
+#   Set by install.sh automatically based on hardware detection
+#
 # Uninstall commands:
 # brew uninstall <package>                    # Basic uninstall (brew packages)
 # brew uninstall --force <package>           # Force removal (brew packages)
@@ -9,6 +13,9 @@
 # brew uninstall --cask --force <package>    # Force removal if normal fails
 # brew uninstall --cask --zap --force <package>  # Both (if needed)
 # mas uninstall <app-id>                     # Mac App Store apps
+
+# Get profile from environment (set by install.sh)
+profile = ENV['DOTFILES_PROFILE'] || 'desktop'
 
 #######################################
 # Essential Command Line Tools
@@ -62,7 +69,7 @@ brew "zsh-syntax-highlighting"  # Syntax colors in terminal
 # Homebrew version is outdated
 
 #######################################
-# Essential GUI Apps
+# Essential GUI Apps (All Profiles)
 #######################################
 cask "visual-studio-code"       # Code editor
 cask "sublime-text"             # Lightweight code editor
@@ -71,16 +78,9 @@ cask "iterm2"                   # Better terminal
 cask "docker-desktop"           # Docker Desktop (includes CLI + GUI)
 cask "claude"                   # Claude Desktop (full version)
 cask "claude-code"              # Claude Code CLI (native binary)
-#cask "grok"                    # Grok Desktop (full version)
 cask "transmit"                 # File transfer client
 cask "hiddenbar"                # Hide menu bar icons
-cask "mark-text"                # Markdown editor
-cask "tunnelblick"              # OpenVPN client
-cask "thunderbird"              # Email client
-cask "balenaetcher"             # OS image flasher
 cask "syncthing-app"            # File synchronization tool
-cask "alfred"                   # Productivity app launcher
-#cask "bitwarden"               # Password manager
 
 #######################################
 # Creative & Design
@@ -91,7 +91,6 @@ cask "alfred"                   # Productivity app launcher
 #######################################
 # Productivity & Communication
 #######################################
-cask "ankerwork"                # Video conferencing
 cask "stats"                    # Free system monitoring (alternative to iStat Menus)
 
 #######################################
@@ -109,11 +108,10 @@ cask "audiobook-builder"        # Audiobook creation
 # Alternative: Use phone scanning apps or buy new scanner
 
 #######################################
-# Utilities
+# Utilities (All Profiles)
 #######################################
 cask "the-unarchiver"           # Archive tool (.zip, .rar, etc)
 cask "appcleaner"               # App uninstaller
-cask "utm"                      # Virtual machine manager
 cask "knockknock"               # See what's persistently installed on your Mac (Malware detection)
 
 #######################################
@@ -127,9 +125,13 @@ cask "knockknock"               # See what's persistently installed on your Mac 
 # cask "1password"              # Password manager (paid)
 # cask "rectangle"              # Window management
 # cask "cleanmymac"             # System cleaner (paid)
+# cask "grok"                   # Grok Desktop (full version)
+# cask "mark-text"              # Markdown editor
+# cask "alfred"                 # Productivity app launcher
+# cask "bitwarden"              # Password manager
 
 #######################################
-# Mac App Store Apps
+# Mac App Store Apps (All Profiles)
 #######################################
 # Note: You need to be logged into the App Store for these to work
 # Use 'mas search "app name"' to find App IDs
@@ -147,20 +149,34 @@ mas "Bitwarden", id: 1352778147  # Password manager
 # Utilities
 mas "DaisyDisk", id: 411643860   # Disk space analyzer
 
-# Mind Mapping & Diagrams
-mas "MindSpace", id: 1585502524  # Mind mapping & diagrams (one-time purchase alternative to MindNode)
-#mas "MindNode", id: 6446116532  # Mind mapping tool (for converting old files)
-
 # Safari Extensions & Ad Blockers
 mas "1Blocker", id: 1365531024        # Safari ad blocker with customization
 mas "AdGuard for Safari", id: 1440147259  # Premium ad blocker, best performance
 mas "Hush", id: 1544743900            # Safari extension to block cookie banners
-#mas "Wipr 2", id: 1662217862         # Minimalist Safari ad blocker
 
 #######################################
-# Development Tools (Optional)
+# Mac App Store - Optional
 #######################################
-# mas "Xcode", id: 497799835     # Apple's development environment (15+ GB - only needed for iOS/macOS development)
+# mas "MindSpace", id: 1585502524  # Mind mapping & diagrams (one-time purchase alternative to MindNode)
+# mas "MindNode", id: 6446116532  # Mind mapping tool (for converting old files)
+# mas "Wipr 2", id: 1662217862    # Minimalist Safari ad blocker
+
+#######################################
+# Desktop Only Apps
+#######################################
+if profile == 'desktop'
+  cask "utm"                      # Virtual machine manager (resource intensive)
+  cask "ankerwork"                # Video conferencing (desktop setup)
+  # mas "Xcode", id: 497799835    # Apple's development environment (15+ GB)
+end
+
+#######################################
+# Laptop Only Apps
+#######################################
+if profile == 'laptop'
+  cask "tunnelblick"              # OpenVPN client (for travel/mobile)
+  cask "balenaetcher"             # OS image flasher (USB workflow)
+end
 
 #######################################
 # Notes on App Store Apps

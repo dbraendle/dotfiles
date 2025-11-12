@@ -182,6 +182,12 @@ main() {
             fi
         fi
 
+        # Export profile for Brewfile conditionals (used by Ruby in Brewfile)
+        # SELECTED_PROFILE is set by install.sh (desktop/laptop)
+        export DOTFILES_PROFILE="${SELECTED_PROFILE:-desktop}"
+        print_status "Using profile: ${DOTFILES_PROFILE}"
+        echo ""
+
         # Run brew bundle with proper error handling
         if brew bundle install --file="${use_brewfile}"; then
             print_success "All packages installed successfully"
