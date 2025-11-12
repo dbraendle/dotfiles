@@ -203,63 +203,28 @@ detect_profile() {
 }
 
 #######################################
-# Check and create Mountfile from template if needed
-# Only Mountfile is gitignored (contains sensitive server IPs)
+# Check that required config files exist in repository
 # Returns:
 #   0 if successful, 1 otherwise
 #######################################
 check_config_files() {
     print_section "Checking Configuration Files"
 
-    local mountfile="${DOTFILES_DIR}/Mountfile"
-    local mountfile_example="${DOTFILES_DIR}/Mountfile.example"
-
-    # Check if Mountfile exists
-    if [[ ! -f "${mountfile}" ]]; then
-        print_warning "Mountfile not found (optional)"
-
-        if [[ ! -f "${mountfile_example}" ]]; then
-            print_warning "Mountfile.example not found - skipping mounts configuration"
-            print_status "You can configure network mounts later if needed"
-            echo ""
-            return 0
-        fi
-
-        print_status "Creating Mountfile from template..."
-        if cp "${mountfile_example}" "${mountfile}"; then
-            print_success "Created: ${mountfile}"
-            echo ""
-            print_warning "⚠️  Mountfile contains example data"
-            print_status "Edit ${mountfile} to add your network shares (NFS/SMB)"
-            print_status "This file is gitignored to protect server IPs/paths"
-            echo ""
-
-            if [[ "$AUTO_YES" == "false" ]]; then
-                print_status "Press Enter to continue (you can configure mounts later)..."
-                read -erp ""
-            fi
-        else
-            print_error "Failed to create Mountfile"
-            return 1
-        fi
-    else
-        print_success "Mountfile exists"
-    fi
-
-    # Check main config files are present (should be in repo)
+    # Check main config files are present (committed in repo)
     local missing_files=()
     [[ ! -f "${DOTFILES_DIR}/Brewfile" ]] && missing_files+=("Brewfile")
     [[ ! -f "${DOTFILES_DIR}/Dockfile" ]] && missing_files+=("Dockfile")
 
     if [[ ${#missing_files[@]} -gt 0 ]]; then
-        print_error "Required configuration files missing:"
+        print_error "Required configuration files missing from repository:"
         for file in "${missing_files[@]}"; do
             print_error "  - ${file}"
         done
-        print_error "These files should be in the repository"
+        print_error "This indicates a problem with the git clone"
         return 1
     fi
 
+    print_success "All required config files present"
     echo ""
     return 0
 }
