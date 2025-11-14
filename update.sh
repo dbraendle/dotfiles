@@ -3,10 +3,14 @@
 # Triggers on-demand updates of dotfiles, packages, and system components
 #
 # Usage:
-#   ./update.sh              # Interactive update
-#   ./update.sh --yes        # Auto-accept all prompts
-#   ./update.sh --force      # Force restow even if up-to-date
-#   ./update.sh --help       # Show help
+#   ./update.sh                 # Interactive update (all)
+#   ./update.sh all             # Update everything
+#   ./update.sh brew            # Only update Homebrew
+#   ./update.sh npm             # Only update npm
+#   ./update.sh dotfiles        # Only update dotfiles repo
+#   ./update.sh system          # Only update macOS system
+#   ./update.sh --yes           # Auto-accept all prompts
+#   ./update.sh --help          # Show help
 
 set -euo pipefail
 
@@ -32,7 +36,15 @@ show_help() {
 Dotfiles V2 - Manual Update Script
 
 Usage:
-  ./update.sh [OPTIONS]
+  ./update.sh [COMPONENT] [OPTIONS]
+
+Components:
+  all          Update everything (default)
+  brew         Update Homebrew packages from Brewfile
+  npm          Update global npm packages
+  dotfiles     Update dotfiles from GitHub
+  system       Update macOS system software
+  omz          Update Oh My Zsh
 
 Options:
   --yes, -y           Auto-accept all prompts
@@ -40,19 +52,12 @@ Options:
   --help, -h          Show this help message
   --version, -v       Show version
 
-Description:
-  Manually triggers updates for:
-    • Dotfiles (git pull from GitHub)
-    • Stow packages (restow all active modules)
-    • Homebrew packages (brew upgrade)
-    • npm global packages (npm update -g)
-    • Oh My Zsh (git pull)
-    • System settings (re-apply profile settings)
-
 Examples:
-  ./update.sh                    # Interactive update
-  ./update.sh --yes              # Non-interactive
-  ./update.sh --force            # Force restow even if unchanged
+  ./update.sh                    # Interactive update (all)
+  ./update.sh all                # Update everything
+  ./update.sh brew               # Only update Homebrew
+  ./update.sh brew --yes         # Update Homebrew without prompts
+  ./update.sh npm                # Only update npm packages
 
 Note:
   For automatic nightly updates, use Ansible on your Homelab server.
@@ -129,6 +134,15 @@ update_homebrew() {
         return 0
     fi
 
+    # Auto-detect profile for Brewfile
+    if is_laptop; then
+        export DOTFILES_PROFILE="laptop"
+        print_status "Profile: laptop"
+    else
+        export DOTFILES_PROFILE="desktop"
+        print_status "Profile: desktop"
+    fi
+
     print_status "Updating Homebrew..."
     if brew update; then
         print_success "Homebrew updated"
@@ -137,7 +151,20 @@ update_homebrew() {
         return 1
     fi
 
-    print_status "Upgrading packages..."
+    # Install/update packages from Brewfile
+    if [[ -f "${SCRIPT_DIR}/Brewfile" ]]; then
+        print_status "Installing/updating packages from Brewfile..."
+        cd "${SCRIPT_DIR}"
+        if brew bundle install; then
+            print_success "Brewfile packages updated"
+        else
+            print_warning "Some Brewfile packages failed to install"
+        fi
+    else
+        print_warning "Brewfile not found, skipping brew bundle"
+    fi
+
+    print_status "Upgrading all outdated packages..."
     if brew upgrade; then
         print_success "Packages upgraded"
     else
@@ -254,14 +281,44 @@ update_modules() {
     print_success "Module updates complete"
 }
 
+update_system() {
+    print_section "Updating macOS System"
+
+    if ! is_macos; then
+        print_warning "Not on macOS, skipping"
+        return 0
+    fi
+
+    print_status "Checking for macOS updates..."
+    softwareupdate --list 2>/dev/null || true
+
+    echo ""
+    if [[ "$AUTO_YES" == true ]] || confirm "Install available macOS updates?" "n"; then
+        print_status "Installing macOS updates (requires sudo)..."
+        if sudo softwareupdate --install --all; then
+            print_success "macOS updates installed"
+        else
+            print_warning "Some updates failed to install"
+        fi
+    else
+        print_status "Skipped macOS update"
+    fi
+}
+
 # ============================================================================
 # Main
 # ============================================================================
 
 main() {
+    local component="all"
+
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
+            brew|npm|dotfiles|system|omz|all)
+                component="$1"
+                shift
+                ;;
             --yes|-y)
                 AUTO_YES=true
                 shift
@@ -279,90 +336,119 @@ main() {
                 exit 0
                 ;;
             *)
-                print_error "Unknown option: $1"
+                print_error "Unknown component or option: $1"
                 echo "Run './update.sh --help' for usage"
                 exit 1
                 ;;
         esac
     done
 
-    # Header
-    print_section "Dotfiles V2 - Manual Update"
-    echo ""
-
-    # Confirm
-    if [[ "$AUTO_YES" == false ]]; then
-        echo "This will update:"
-        echo "  • Dotfiles (git pull)"
-        echo "  • Stow packages (restow)"
-        echo "  • Homebrew packages"
-        echo "  • NPM global packages"
-        echo "  • Oh My Zsh"
-        echo "  • Active modules"
-        echo "  • System settings (optional)"
-        echo ""
-
-        if ! confirm "Proceed with update?"; then
-            print_status "Update cancelled"
-            exit 0
-        fi
-
-        echo ""
-    fi
-
     # Create log file
     local log_dir="${SCRIPT_DIR}/logs"
     mkdir -p "$log_dir"
     export LOG_FILE="${log_dir}/update-$(date +%Y-%m-%d-%H%M%S).log"
 
-    print_status "Logging to: $LOG_FILE"
-    echo ""
-
-    # Run updates
+    # Run updates based on component
     local start_time
     start_time=$(date +%s)
 
-    update_dotfiles || true
-    echo ""
+    case "$component" in
+        brew)
+            update_homebrew || true
+            ;;
+        npm)
+            update_npm || true
+            ;;
+        dotfiles)
+            update_dotfiles || true
+            echo ""
+            restow_modules || true
+            ;;
+        system)
+            update_system || true
+            ;;
+        omz)
+            update_oh_my_zsh || true
+            ;;
+        all)
+            # Header
+            print_section "Dotfiles V2 - Complete Update"
+            echo ""
 
-    restow_modules || true
-    echo ""
+            # Confirm
+            if [[ "$AUTO_YES" == false ]]; then
+                echo "This will update:"
+                echo "  • Dotfiles (git pull)"
+                echo "  • Stow packages (restow)"
+                echo "  • Homebrew packages (from Brewfile)"
+                echo "  • NPM global packages"
+                echo "  • Oh My Zsh"
+                echo "  • Active modules"
+                echo "  • System settings (optional)"
+                echo ""
 
-    update_homebrew || true
-    echo ""
+                if ! confirm "Proceed with update?"; then
+                    print_status "Update cancelled"
+                    exit 0
+                fi
 
-    update_npm || true
-    echo ""
+                echo ""
+            fi
 
-    update_oh_my_zsh || true
-    echo ""
+            print_status "Logging to: $LOG_FILE"
+            echo ""
 
-    update_modules || true
-    echo ""
+            update_dotfiles || true
+            echo ""
 
-    reapply_system_settings || true
-    echo ""
+            restow_modules || true
+            echo ""
+
+            update_homebrew || true
+            echo ""
+
+            update_npm || true
+            echo ""
+
+            update_oh_my_zsh || true
+            echo ""
+
+            update_modules || true
+            echo ""
+
+            reapply_system_settings || true
+            echo ""
+            ;;
+    esac
 
     # Summary
     local end_time
     end_time=$(date +%s)
     local duration=$((end_time - start_time))
 
-    print_section "Update Complete"
     echo ""
-    echo "✓ Dotfiles updated and re-symlinked"
-    echo "✓ Packages updated (Homebrew, npm)"
-    echo "✓ Oh My Zsh updated"
-    echo "✓ Active modules updated"
-    echo ""
-    echo "Duration: ${duration}s"
-    echo "Log: $LOG_FILE"
-    echo ""
+    print_success "Update Complete!"
 
-    print_success "Next Steps:"
-    echo "  1. Restart Terminal: source ~/.zshrc"
-    echo "  2. Verify: ./manage.sh modules status"
-    echo "  3. Check for issues: tail $LOG_FILE"
+    if [[ "$component" == "all" ]]; then
+        echo ""
+        echo "✓ Dotfiles updated and re-symlinked"
+        echo "✓ Packages updated (Homebrew, npm)"
+        echo "✓ Oh My Zsh updated"
+        echo "✓ Active modules updated"
+        echo ""
+        echo "Duration: ${duration}s"
+        echo "Log: $LOG_FILE"
+        echo ""
+        print_status "Next Steps:"
+        echo "  1. Restart Terminal: source ~/.zshrc"
+        echo "  2. Verify: ./manage.sh modules status"
+    else
+        echo "Component '${component}' updated successfully (${duration}s)"
+        if [[ "$component" == "brew" ]] || [[ "$component" == "dotfiles" ]]; then
+            echo ""
+            print_status "You may need to restart your terminal: source ~/.zshrc"
+        fi
+    fi
     echo ""
 }
 
