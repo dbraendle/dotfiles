@@ -482,9 +482,11 @@ select_modules_interactively() {
         return
     fi
 
-    echo "Optional modules (select which to install):"
+    echo "Optional modules available:"
     echo ""
 
+    # Display all optional modules with numbers
+    local i=1
     for module in "${optional_modules[@]}"; do
         local description=""
         local module_file="${DOTFILES_DIR}/modules/${module}/module.json"
@@ -497,15 +499,33 @@ select_modules_interactively() {
             description="No description available"
         fi
 
-        echo -ne "  Install ${BOLD}${module}${NC}? ($description) "
-        if [[ "$AUTO_YES" == "true" ]] || confirm "" "n"; then
-            SELECTED_MODULES+=("$module")
-            print_success "  → $module will be installed"
-        else
-            print_status "  → $module skipped"
-        fi
-        echo ""
+        echo "  [${i}] ${BOLD}${module}${NC} - ${description}"
+        ((i++))
     done
+
+    echo ""
+    echo "Enter numbers separated by space (e.g., \"1 2\"), \"all\" for all, or just press Enter to skip all:"
+    read -erp "> " module_selection
+
+    # Handle selection
+    if [[ -z "${module_selection}" ]]; then
+        print_status "No optional modules selected"
+    elif [[ "${module_selection}" == "all" ]]; then
+        SELECTED_MODULES+=("${optional_modules[@]}")
+        print_success "All optional modules will be installed"
+    else
+        # Parse numbers
+        for num in ${module_selection}; do
+            if [[ "${num}" =~ ^[0-9]+$ ]] && [[ ${num} -ge 1 ]] && [[ ${num} -le ${#optional_modules[@]} ]]; then
+                local idx=$((num - 1))
+                SELECTED_MODULES+=("${optional_modules[$idx]}")
+                print_success "  → ${optional_modules[$idx]} will be installed"
+            else
+                print_warning "  → Invalid selection: ${num}"
+            fi
+        done
+    fi
+    echo ""
 }
 
 #######################################
