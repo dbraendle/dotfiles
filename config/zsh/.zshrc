@@ -26,6 +26,9 @@ source $ZSH/oh-my-zsh.sh
 # Homebrew (Apple Silicon)
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
+# Add ~/bin to PATH (for dotfiles commands like 'update')
+export PATH="$HOME/bin:$PATH"
+
 # Environment Variables
 export EDITOR="code"
 export BROWSER="google-chrome"

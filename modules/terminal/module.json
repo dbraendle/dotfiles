@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "dependencies": ["homebrew"],
   "conflicts": [],
-  "stow_packages": ["zsh"],
+  "stow_packages": ["zsh", "bin"],
   "scripts": {
     "install": "modules/terminal/install.sh",
     "uninstall": "modules/terminal/uninstall.sh",
