@@ -34,10 +34,13 @@ brew "telnet"                   # Telnet client
 brew "iperf3"                   # Network performance testing
 
 #######################################
-# AI Development Tools
+# AI Tools & Assistants
 #######################################
-# Note: codex may need to be installed from a custom tap or manually
-# brew "codex"                  # OpenAI Codex CLI tool
+cask "claude"                   # Anthropic Claude Desktop (full version)
+cask "claude-code"              # Anthropic Claude Code CLI (native binary)
+cask "chatgpt"                  # OpenAI ChatGPT Desktop App (official)
+cask "chatgpt-atlas"            # OpenAI ChatGPT Atlas Browser (official)
+cask "codex"                    # OpenAI Codex CLI coding agent (official)
 
 #######################################
 # Better CLI Tools
@@ -76,8 +79,6 @@ cask "sublime-text"             # Lightweight code editor
 cask "google-chrome"            # Browser with dev tools
 cask "iterm2"                   # Better terminal
 cask "docker-desktop"           # Docker Desktop (includes CLI + GUI)
-cask "claude"                   # Claude Desktop (full version)
-cask "claude-code"              # Claude Code CLI (native binary)
 cask "transmit"                 # File transfer client
 cask "hiddenbar"                # Hide menu bar icons
 cask "syncthing-app"            # File synchronization tool
