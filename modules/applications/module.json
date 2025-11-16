@@ -1,7 +1,7 @@
 {
   "name": "applications",
   "description": "macOS application configurations (Sublime, Alfred, etc.)",
-  "category": "applications",
+  "category": "optional",
   "version": "1.0.0",
   "dependencies": [],
   "conflicts": [],
