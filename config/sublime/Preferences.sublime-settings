@@ -1,0 +1,30 @@
+{
+	"font_size": 11,
+	"folder_exclude_patterns": [
+		".svn",
+		".hg",
+		"CVS",
+		"node_modules"
+	],
+	"file_exclude_patterns": [
+		"*.pyc",
+		"*.pyo",
+		"*.exe",
+		"*.dll",
+		"*.obj",
+		"*.o",
+		"*.a",
+		"*.lib",
+		"*.so",
+		"*.dylib",
+		"*.ncb",
+		"*.sdf",
+		"*.suo",
+		"*.pdb",
+		"*.idb",
+		".DS_Store",
+		"*.class",
+		"*.psd",
+		"*.sublime-workspace"
+	]
+}
