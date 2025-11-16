@@ -748,6 +748,46 @@ install_module() {
 }
 
 #######################################
+# Add modules with enabled_by_default=true to SELECTED_MODULES
+# Modifies global SELECTED_MODULES array
+#######################################
+add_default_modules() {
+    local modules_dir="${DOTFILES_DIR}/modules"
+
+    # Check if jq is available
+    if ! command_exists jq; then
+        print_debug "jq not available, skipping auto-selection"
+        return 0
+    fi
+
+    # Scan all module.json files
+    for module_json in "${modules_dir}"/*/module.json; do
+        if [[ ! -f "$module_json" ]]; then
+            continue
+        fi
+
+        # Extract module name and enabled_by_default flag
+        local module_name
+        local enabled_by_default
+        module_name=$(jq -r '.name // ""' "$module_json" 2>/dev/null)
+        enabled_by_default=$(jq -r '.enabled_by_default // false' "$module_json" 2>/dev/null)
+
+        # Add to SELECTED_MODULES if enabled_by_default is true
+        if [[ "$enabled_by_default" == "true" ]] && [[ -n "$module_name" ]]; then
+            # Check if not already in array
+            if [[ ! " ${SELECTED_MODULES[*]} " =~ " ${module_name} " ]]; then
+                SELECTED_MODULES+=("$module_name")
+                print_debug "Auto-selected module: $module_name"
+            fi
+        fi
+    done
+
+    if [[ ${#SELECTED_MODULES[@]} -gt 0 ]]; then
+        print_success "Auto-selected ${#SELECTED_MODULES[@]} modules: ${SELECTED_MODULES[*]}"
+    fi
+}
+
+#######################################
 # Install all selected modules
 # Returns:
 #   0 if all successful, 1 if any failed
@@ -987,6 +1027,12 @@ EOF
 
     # Setup iCloud / Apple ID (do this early so mas apps can install later)
     setup_icloud
+
+    # Add enabled_by_default modules if no modules explicitly selected
+    if [[ ${#SELECTED_MODULES[@]} -eq 0 ]]; then
+        print_status "Auto-selecting enabled_by_default modules..."
+        add_default_modules
+    fi
 
     # Interactive menu or use provided modules
     if [[ "$INTERACTIVE" == "true" ]] && [[ ${#SELECTED_MODULES[@]} -eq 0 ]]; then
