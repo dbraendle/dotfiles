@@ -1,0 +1,19 @@
+{
+  "name": "applications",
+  "description": "macOS application configurations (Sublime, Alfred, etc.)",
+  "category": "applications",
+  "version": "1.0.0",
+  "dependencies": [],
+  "conflicts": [],
+  "stow_packages": ["sublime"],
+  "scripts": {
+    "install": "modules/applications/install.sh",
+    "uninstall": "modules/applications/uninstall.sh"
+  },
+  "profiles": ["desktop", "laptop"],
+  "platforms": ["macos"],
+  "requires": {},
+  "optional": true,
+  "enabled_by_default": true,
+  "tags": ["apps", "sublime", "alfred", "editors"]
+}
