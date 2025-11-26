@@ -1,11 +1,11 @@
 {
   "name": "applications",
-  "description": "macOS application configurations (Sublime, Alfred, etc.)",
+  "description": "macOS application configurations (Sublime, Prettier, ESLint, etc.)",
   "category": "optional",
   "version": "1.0.0",
   "dependencies": [],
   "conflicts": [],
-  "stow_packages": ["sublime"],
+  "stow_packages": ["sublime", "devtools"],
   "scripts": {
     "install": "modules/applications/install.sh",
     "uninstall": "modules/applications/uninstall.sh"
