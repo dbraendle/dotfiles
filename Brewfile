@@ -88,6 +88,7 @@ cask "syncthing-app"            # File synchronization tool
 #######################################
 # Adobe Creative Cloud removed - too heavy for automated installation
 # Install manually if needed: brew install --cask adobe-creative-cloud
+cask "affinity"                 # Free all-in-one design app (Photo, Designer, Publisher by Canva)
 
 #######################################
 # Productivity & Communication
