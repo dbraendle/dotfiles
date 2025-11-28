@@ -64,6 +64,12 @@ brew "dockutil"                 # Manage Dock items from command line
 #######################################
 brew "zsh-autosuggestions"      # Tab completion
 brew "zsh-syntax-highlighting"  # Syntax colors in terminal
+brew "powerlevel10k"            # Fancy zsh theme with git info, icons, and colors
+
+#######################################
+# Fonts (Nerd Fonts for Terminal Icons)
+#######################################
+cask "font-meslo-lg-nerd-font"  # Required for Powerlevel10k icons
 
 #######################################
 # Security & Encryption

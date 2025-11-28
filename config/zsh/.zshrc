@@ -1,11 +1,18 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # Oh My Zsh Configuration
 export ZSH="$HOME/.oh-my-zsh"
 
 # Disable automatic updates (zsh plugins managed by Homebrew)
 DISABLE_AUTO_UPDATE="true"
 
-# Theme (clean and minimal)
-ZSH_THEME="robbyrussell"
+# Theme (Powerlevel10k - fancy git info, icons, colors)
+ZSH_THEME="powerlevel10k/powerlevel10k"
 
 # Plugins (only built-in plugins - external ones loaded separately below)
 plugins=(
@@ -22,6 +29,14 @@ plugins=(
 
 # Load Oh My Zsh
 source $ZSH/oh-my-zsh.sh
+
+# Powerlevel10k (installed via Homebrew)
+if [ -f /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme ]; then
+    source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
+fi
+
+# To customize Powerlevel10k, run `p10k configure` or edit ~/.p10k.zsh
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Homebrew (Apple Silicon)
 eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -136,4 +151,3 @@ echo "🚀 Terminal ready - $(date '+%H:%M')"
 if command -v git &> /dev/null && [ -n "$(git config user.name 2>/dev/null)" ]; then
     echo "👤 Git: $(git config user.name)"
 fi
-
