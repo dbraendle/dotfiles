@@ -22,6 +22,7 @@ source "${SCRIPT_DIR}/../../lib/utils.sh"
 declare -a NPM_PACKAGES=(
     "typescript:TypeScript compiler and language support"
     "prettier:Code formatter for JavaScript, CSS, JSON, Markdown, etc"
+    "happy-coder:Interactive CLI tool for developer happiness and motivation"
 )
 
 #######################################
