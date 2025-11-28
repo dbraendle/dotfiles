@@ -146,8 +146,3 @@ if [ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 
     source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
-# Welcome message
-echo "🚀 Terminal ready - $(date '+%H:%M')"
-if command -v git &> /dev/null && [ -n "$(git config user.name 2>/dev/null)" ]; then
-    echo "👤 Git: $(git config user.name)"
-fi
