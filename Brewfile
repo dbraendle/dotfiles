@@ -32,6 +32,7 @@ brew "ffmpeg"                   # Video processing
 brew "nmap"                     # Network scanner
 brew "telnet"                   # Telnet client
 brew "iperf3"                   # Network performance testing
+# Cloudflare Wrangler - install via npm: npm install -g wrangler
 
 #######################################
 # AI Tools & Assistants
