@@ -49,6 +49,7 @@ cask "codex"                    # OpenAI Codex CLI coding agent (official)
 brew "ripgrep"                  # Fast text search (rg)
 brew "bat"                      # cat with syntax highlighting
 brew "eza"                      # Better ls with colors
+brew "syncthing"                # Continuous file synchronization (CLI)
 
 #######################################
 # Mac App Store CLI
@@ -102,6 +103,7 @@ cask "figma"                    # Collaborative design tool
 # Productivity & Communication
 #######################################
 cask "stats"                    # Free system monitoring (alternative to iStat Menus)
+cask "obsidian"                 # Markdown-based knowledge base and note-taking
 
 #######################################
 # Media & Entertainment
@@ -122,6 +124,8 @@ cask "downie"                   # Video downloader
 cask "the-unarchiver"           # Archive tool (.zip, .rar, etc)
 cask "appcleaner"               # App uninstaller
 cask "knockknock"               # See what's persistently installed on your Mac (Malware detection)
+cask "carbon-copy-cloner"       # Disk cloning and backup tool
+cask "tailscale"                # VPN mesh network for secure remote access
 
 #######################################
 # Optional Apps (Uncomment to install)

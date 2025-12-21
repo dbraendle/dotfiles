@@ -146,3 +146,5 @@ if [ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 
     source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
+export HA_TOKEN='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjYzc0ZDcwODRiYWI0YjFiYjdmMjM5Yjg0MzkxYjMwNSIsImlhdCI6MTc2MzA3NDAzMywiZXhwIjoyMDc4NDM0MDMzfQ.SxaSjbNSUXjuIDdUDQyp4EAhrRgKIdLCb3SAM_SEzTY'
+export HA_URL='http://homeassistant.local:8123'
