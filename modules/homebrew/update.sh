@@ -96,7 +96,7 @@ main() {
     local unused_deps
     unused_deps=$(brew autoremove --dry-run 2>/dev/null | grep -c "Would remove" || echo "0")
 
-    if [[ ${unused_deps} -gt 0 ]]; then
+    if [[ "${unused_deps}" -gt 0 ]]; then
         print_status "Found ${unused_deps} unused dependencies"
         if brew autoremove; then
             print_success "Unused dependencies removed"

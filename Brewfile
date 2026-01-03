@@ -50,6 +50,7 @@ brew "ripgrep"                  # Fast text search (rg)
 brew "bat"                      # cat with syntax highlighting
 brew "eza"                      # Better ls with colors
 brew "syncthing"                # Continuous file synchronization (CLI)
+brew "step"                     # Crypto and x509 Swiss-Army-Knife
 
 #######################################
 # Mac App Store CLI
@@ -125,7 +126,7 @@ cask "the-unarchiver"           # Archive tool (.zip, .rar, etc)
 cask "appcleaner"               # App uninstaller
 cask "knockknock"               # See what's persistently installed on your Mac (Malware detection)
 cask "carbon-copy-cloner"       # Disk cloning and backup tool
-cask "tailscale"                # VPN mesh network for secure remote access
+cask "tailscale-app"            # VPN mesh network for secure remote access
 
 #######################################
 # Optional Apps (Uncomment to install)
